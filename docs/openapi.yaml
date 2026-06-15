@@ -7,7 +7,7 @@ info:
     name: Team
 
 servers:
-  - url: http://localhost:3000/api/v1
+  - url: http://localhost:3001/api/v1
     description: Development server
   - url: https://api.calendar-share.app/api/v1
     description: Production server
@@ -140,6 +140,32 @@ paths:
           description: Server error
 
   /groups/join/{token}:
+    get:
+      summary: Get group info by invite token (preview before joining)
+      tags:
+        - Groups
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Group info preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupPreview'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invalid invite token
+        '500':
+          description: Server error
+
     post:
       summary: Join a group via invite link
       tags:
@@ -344,6 +370,9 @@ paths:
                   type: string
                 memo:
                   type: string
+                location:
+                  type: string
+                  maxLength: 200
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
@@ -400,6 +429,9 @@ paths:
                   type: string
                 memo:
                   type: string
+                location:
+                  type: string
+                  maxLength: 200
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
@@ -449,6 +481,277 @@ paths:
           description: Forbidden - not event creator
         '404':
           description: Event not found
+        '500':
+          description: Server error
+
+  /shift-patterns:
+    get:
+      summary: Get current user's shift patterns
+      tags:
+        - ShiftPatterns
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of shift patterns sorted by sort_order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShiftPattern'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    post:
+      summary: Create a shift pattern
+      tags:
+        - ShiftPatterns
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                start_time:
+                  type: string
+                  example: '07:05'
+                end_time:
+                  type: string
+                  example: '15:50'
+                break_minutes:
+                  type: integer
+                  default: 0
+                is_day_off:
+                  type: boolean
+                  default: false
+                sort_order:
+                  type: integer
+                  default: 0
+              required:
+                - name
+                - color
+      responses:
+        '201':
+          description: Shift pattern created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftPattern'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /shift-patterns/{id}:
+    get:
+      summary: Get a shift pattern by ID (owner only)
+      tags:
+        - ShiftPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shift pattern detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftPattern'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not pattern owner
+        '404':
+          description: Shift pattern not found
+        '500':
+          description: Server error
+
+    patch:
+      summary: Update a shift pattern (owner only)
+      tags:
+        - ShiftPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                start_time:
+                  type: string
+                end_time:
+                  type: string
+                break_minutes:
+                  type: integer
+                is_day_off:
+                  type: boolean
+                sort_order:
+                  type: integer
+      responses:
+        '200':
+          description: Shift pattern updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftPattern'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not pattern owner
+        '404':
+          description: Shift pattern not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete a shift pattern (owner only)
+      tags:
+        - ShiftPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Shift pattern deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not pattern owner
+        '404':
+          description: Shift pattern not found
+        '500':
+          description: Server error
+
+  /shifts:
+    get:
+      summary: Get shifts for all group members in a specific month
+      tags:
+        - Shifts
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            example: '2026-06'
+      responses:
+        '200':
+          description: List of shifts for the month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shift'
+        '400':
+          description: Invalid month format
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /shifts/{date}:
+    put:
+      summary: Assign or update the current user's shift on a specific date
+      tags:
+        - Shifts
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+            example: '2026-06-12'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shift_pattern_id:
+                  type: string
+                  format: uuid
+              required:
+                - shift_pattern_id
+      responses:
+        '200':
+          description: Shift assigned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shift pattern not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Remove the current user's shift on a specific date
+      tags:
+        - Shifts
+      parameters:
+        - name: date
+          in: path
+          required: true
+          schema:
+            type: string
+            format: date
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Shift removed
+        '401':
+          description: Unauthorized
+        '404':
+          description: Shift not found
         '500':
           description: Server error
 
@@ -560,6 +863,9 @@ components:
           type: string
         memo:
           type: string
+        location:
+          type: string
+          maxLength: 200
         color:
           type: string
           pattern: '^#[0-9A-Fa-f]{6}$'
@@ -586,6 +892,100 @@ components:
         - start_at
         - end_at
         - is_all_day
+        - created_at
+        - updated_at
+
+    GroupPreview:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        member_count:
+          type: integer
+      required:
+        - id
+        - name
+        - member_count
+
+    ShiftPattern:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        start_time:
+          type: string
+          example: '07:05'
+          nullable: true
+        end_time:
+          type: string
+          example: '15:50'
+          nullable: true
+        break_minutes:
+          type: integer
+        is_day_off:
+          type: boolean
+        sort_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - name
+        - color
+        - is_day_off
+        - sort_order
+        - created_at
+        - updated_at
+
+    Shift:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        shift_pattern_id:
+          type: string
+          format: uuid
+        shift_pattern:
+          $ref: '#/components/schemas/ShiftPattern'
+        date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - user_id
+        - group_id
+        - shift_pattern_id
+        - date
         - created_at
         - updated_at
 

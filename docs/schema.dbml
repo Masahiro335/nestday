@@ -66,13 +66,14 @@ Table events {
   created_by uuid [not null, ref: > users.id]
   title string [not null]
   memo string
+  location string [note: 'optional, max 200 chars']
   color string [note: 'optional override, defaults to calendar.color']
   start_at timestamp [not null]
   end_at timestamp [not null]
   is_all_day boolean [default: false, note: 'true: only date is used']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
-  
+
   indexes {
     group_id
     calendar_id
@@ -81,8 +82,45 @@ Table events {
   }
 }
 
+Table shift_patterns {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  name string [not null, note: '表示名称 e.g., 1, 振休']
+  color string [not null, note: 'e.g., #FF6B6B']
+  start_time time [note: 'null if is_day_off = true']
+  end_time time [note: 'null if is_day_off = true']
+  break_minutes int [default: 0, note: '休憩時間（分）']
+  is_day_off boolean [not null, default: false]
+  sort_order int [not null, default: 0]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    user_id
+    (user_id, sort_order)
+  }
+}
+
+Table shifts {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  group_id uuid [not null, ref: > groups.id]
+  shift_pattern_id uuid [not null, ref: > shift_patterns.id]
+  date date [not null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    (user_id, date)
+    (group_id, date)
+  }
+
+  // One shift assignment per user per day
+  unique (user_id, date)
+}
+
 // Notes on schema:
-// 
+//
 // 1. users: Basic user authentication
 //    - email: unique for login
 //    - password_hash: bcrypt hashed password
@@ -95,12 +133,24 @@ Table events {
 //    - unique constraint on user_id: enforces 1 user = 1 group
 //    - When user joins a group via invite link, new row is created
 //
-// 4. calendars: NEW - supports multiple calendars per group
+// 4. calendars: Supports multiple calendars per group
 //    - Each group can have many calendars (private, work, etc.)
 //    - All group members see all calendars
+//    - Calendar ON/OFF visibility toggle is client-side state only (no DB column needed)
 //
 // 5. events: Events on calendars
 //    - calendar_id: references which calendar this event belongs to
 //    - created_by: stores owner for edit/delete permission
 //    - is_all_day: flag for all-day vs. timed events
 //    - start_at / end_at: for all-day, only date portion is used
+//    - location: optional venue text (max 200 chars)
+//
+// 6. shift_patterns: Per-user shift pattern definitions
+//    - user_id: each user manages their own patterns
+//    - start_time / end_time: null when is_day_off = true
+//    - break_minutes: stored in minutes for arithmetic
+//    - sort_order: display order on pattern selection UI
+//
+// 7. shifts: Daily shift assignments per user
+//    - unique (user_id, date): one shift per user per day
+//    - group_id: denormalized for efficient group-wide queries (work calendar)
