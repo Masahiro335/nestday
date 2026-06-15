@@ -1,0 +1,106 @@
+// Calendar Sharing App - Database Schema
+// Generated: 2026-06-12
+
+Table users {
+  id uuid [pk]
+  email string [unique, not null]
+  password_hash string [not null]
+  name string
+  avatar_url string
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    email
+  }
+}
+
+Table groups {
+  id uuid [pk]
+  name string [not null]
+  invite_token string [unique, not null]
+  owner_id uuid [not null, ref: > users.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    invite_token
+    owner_id
+  }
+}
+
+Table group_members {
+  id uuid [pk]
+  group_id uuid [not null, ref: > groups.id]
+  user_id uuid [not null, ref: > users.id]
+  joined_at timestamp [default: `now()`]
+  
+  indexes {
+    group_id
+    user_id
+  }
+  
+  // 1 user = 1 group constraint
+  unique (user_id)
+}
+
+Table calendars {
+  id uuid [pk]
+  group_id uuid [not null, ref: > groups.id]
+  name string [not null]
+  color string [not null, note: 'e.g., #FF6B6B']
+  created_by uuid [not null, ref: > users.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    group_id
+    created_by
+  }
+}
+
+Table events {
+  id uuid [pk]
+  group_id uuid [not null, ref: > groups.id]
+  calendar_id uuid [not null, ref: > calendars.id]
+  created_by uuid [not null, ref: > users.id]
+  title string [not null]
+  memo string
+  color string [note: 'optional override, defaults to calendar.color']
+  start_at timestamp [not null]
+  end_at timestamp [not null]
+  is_all_day boolean [default: false, note: 'true: only date is used']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  indexes {
+    group_id
+    calendar_id
+    created_by
+    (start_at, end_at)
+  }
+}
+
+// Notes on schema:
+// 
+// 1. users: Basic user authentication
+//    - email: unique for login
+//    - password_hash: bcrypt hashed password
+//
+// 2. groups: Group management
+//    - invite_token: unique token for invitation links (e.g., UUID)
+//    - owner_id: user who created the group
+//
+// 3. group_members: Group membership
+//    - unique constraint on user_id: enforces 1 user = 1 group
+//    - When user joins a group via invite link, new row is created
+//
+// 4. calendars: NEW - supports multiple calendars per group
+//    - Each group can have many calendars (private, work, etc.)
+//    - All group members see all calendars
+//
+// 5. events: Events on calendars
+//    - calendar_id: references which calendar this event belongs to
+//    - created_by: stores owner for edit/delete permission
+//    - is_all_day: flag for all-day vs. timed events
+//    - start_at / end_at: for all-day, only date portion is used

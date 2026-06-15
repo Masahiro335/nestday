@@ -1,0 +1,596 @@
+openapi: 3.0.0
+info:
+  title: Calendar Sharing App API
+  description: API for a group-based calendar sharing application
+  version: 1.0.0
+  contact:
+    name: Team
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Development server
+  - url: https://api.calendar-share.app/api/v1
+    description: Production server
+
+paths:
+  /auth/register:
+    post:
+      summary: User registration
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                name:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input or email already exists
+        '500':
+          description: Server error
+
+  /auth/login:
+    post:
+      summary: User login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: JWT token
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Server error
+
+  /groups:
+    post:
+      summary: Create a new group
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+      responses:
+        '201':
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+  /groups/me:
+    get:
+      summary: Get user's group
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User's group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GroupWithMembers'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Group not found
+        '500':
+          description: Server error
+
+  /groups/join/{token}:
+    post:
+      summary: Join a group via invite link
+      tags:
+        - Groups
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully joined group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Group'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Invalid invite token
+        '409':
+          description: User already in a group
+        '500':
+          description: Server error
+
+  /calendars:
+    get:
+      summary: Get all calendars in user's group
+      tags:
+        - Calendars
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of calendars
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Calendar'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
+    post:
+      summary: Create a new calendar
+      tags:
+        - Calendars
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+              required:
+                - name
+                - color
+      responses:
+        '201':
+          description: Calendar created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid input
+        '500':
+          description: Server error
+
+  /calendars/{id}:
+    patch:
+      summary: Update calendar (name/color)
+      tags:
+        - Calendars
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+      responses:
+        '200':
+          description: Calendar updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+        '401':
+          description: Unauthorized
+        '404':
+          description: Calendar not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete calendar
+      tags:
+        - Calendars
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Calendar deleted successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: Calendar not found
+        '500':
+          description: Server error
+
+  /events:
+    get:
+      summary: Get events for a specific month
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: true
+          schema:
+            type: string
+            format: 'YYYY-MM'
+            example: '2026-06'
+        - name: calendar_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+            description: Optional - filter by specific calendar
+      responses:
+        '200':
+          description: List of events for the month
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid month format
+        '500':
+          description: Server error
+
+    post:
+      summary: Create a new event
+      tags:
+        - Events
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                calendar_id:
+                  type: string
+                  format: uuid
+                title:
+                  type: string
+                memo:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                start_at:
+                  type: string
+                  format: date-time
+                end_at:
+                  type: string
+                  format: date-time
+                is_all_day:
+                  type: boolean
+                  default: false
+              required:
+                - calendar_id
+                - title
+                - start_at
+                - end_at
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Invalid input
+        '500':
+          description: Server error
+
+  /events/{id}:
+    patch:
+      summary: Update event (creator only)
+      tags:
+        - Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                memo:
+                  type: string
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                start_at:
+                  type: string
+                  format: date-time
+                end_at:
+                  type: string
+                  format: date-time
+                is_all_day:
+                  type: boolean
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not event creator
+        '404':
+          description: Event not found
+        '500':
+          description: Server error
+
+    delete:
+      summary: Delete event (creator only)
+      tags:
+        - Events
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Event deleted successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not event creator
+        '404':
+          description: Event not found
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        avatar_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - email
+        - created_at
+
+    Group:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        invite_token:
+          type: string
+        owner_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - invite_token
+        - owner_id
+        - created_at
+
+    GroupWithMembers:
+      allOf:
+        - $ref: '#/components/schemas/Group'
+        - type: object
+          properties:
+            members:
+              type: array
+              items:
+                $ref: '#/components/schemas/User'
+
+    Calendar:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - group_id
+        - name
+        - color
+        - created_by
+        - created_at
+        - updated_at
+
+    Event:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        group_id:
+          type: string
+          format: uuid
+        calendar_id:
+          type: string
+          format: uuid
+        created_by:
+          type: string
+          format: uuid
+        title:
+          type: string
+        memo:
+          type: string
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        start_at:
+          type: string
+          format: date-time
+        end_at:
+          type: string
+          format: date-time
+        is_all_day:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - group_id
+        - calendar_id
+        - created_by
+        - title
+        - start_at
+        - end_at
+        - is_all_day
+        - created_at
+        - updated_at
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
