@@ -1,0 +1,19 @@
+{
+  "extends": "//",
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "cache": false
+    },
+    "type-check": {
+      "cache": false
+    }
+  }
+}
