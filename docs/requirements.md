@@ -103,7 +103,22 @@
 ## 開発フロー
 
 ### ブランチ戦略
+
+| ブランチ | 用途 |
+|---------|------|
+| `main` | 初期ブランチ |
+| `develop` | 開発用ブランチ |
+| `release` | リリース用ブランチ |
+
 - PRのマージ先は常に `develop` ブランチとする
+
+### CI/CD
+
+| ワークフロー | トリガー | 内容 |
+|------------|---------|------|
+| CI | PR → `develop` / `release` | lint・型チェック・ビルド |
+| Deploy Staging | push → `develop` | Vercel preview + Render staging デプロイ |
+| Deploy Production | push → `release` | Vercel production + Render production デプロイ |
 
 ## 更新履歴
 
@@ -112,3 +127,4 @@
 | 2026-06-10 | 初版作成 |
 | 2026-06-12 | 複数カレンダー対応（仕様大幅変更） |
 | 2026-06-15 | 開発フロー（PRマージ先）追記 |
+| 2026-06-15 | ブランチ戦略・CI/CD仕様追記 |
