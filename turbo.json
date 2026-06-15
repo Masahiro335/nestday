@@ -1,5 +1,5 @@
 {
-  "extends": "//",
+  "extends": ["//"],
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
