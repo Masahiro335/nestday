@@ -207,7 +207,7 @@ release ブランチへのマージ
 ### Node.js バージョン
 
 ```
->=18.17.0（.nvmrc / engines フィールドで指定）
+>=18.17.0（package.json の engines フィールドで指定）
 ```
 
 ---
