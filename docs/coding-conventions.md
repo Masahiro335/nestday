@@ -12,14 +12,14 @@
 
 ルートの `.prettierrc` が全パッケージに適用される。
 
-| 設定 | 値 |
-|------|---|
-| セミコロン | あり（`semi: true`） |
-| クォート | シングルクォート（`singleQuote: true`） |
-| 末尾カンマ | ES5 互換の箇所（`trailingComma: "es5"`） |
-| 1行の最大文字数 | 100文字（`printWidth: 100`） |
-| インデント | スペース2つ（`tabWidth: 2`） |
-| アロー関数の引数 | 常に括弧あり（`arrowParens: "always"`） |
+| 設定             | 値                                       |
+| ---------------- | ---------------------------------------- |
+| セミコロン       | あり（`semi: true`）                     |
+| クォート         | シングルクォート（`singleQuote: true`）  |
+| 末尾カンマ       | ES5 互換の箇所（`trailingComma: "es5"`） |
+| 1行の最大文字数  | 100文字（`printWidth: 100`）             |
+| インデント       | スペース2つ（`tabWidth: 2`）             |
+| アロー関数の引数 | 常に括弧あり（`arrowParens: "always"`）  |
 
 フォーマットはコミット前に必ず実行する。
 
@@ -33,29 +33,29 @@ npm run format
 
 ### 共通
 
-| 対象 | 形式 | 例 |
-|------|------|----|
-| 変数・関数 | camelCase | `groupId`, `fetchEvents()` |
-| 定数（変更不可） | SCREAMING_SNAKE_CASE | `EVENT_COLORS`, `MAX_RETRY` |
-| 型・インターフェース | PascalCase | `User`, `CreateEventRequest` |
-| ファイル名（TS/TSX） | kebab-case | `event-card.tsx`, `auth.service.ts` |
-| ディレクトリ名 | kebab-case | `group-members/`, `use-cases/` |
+| 対象                 | 形式                 | 例                                  |
+| -------------------- | -------------------- | ----------------------------------- |
+| 変数・関数           | camelCase            | `groupId`, `fetchEvents()`          |
+| 定数（変更不可）     | SCREAMING_SNAKE_CASE | `EVENT_COLORS`, `MAX_RETRY`         |
+| 型・インターフェース | PascalCase           | `User`, `CreateEventRequest`        |
+| ファイル名（TS/TSX） | kebab-case           | `event-card.tsx`, `auth.service.ts` |
+| ディレクトリ名       | kebab-case           | `group-members/`, `use-cases/`      |
 
 ### フロントエンド固有
 
-| 対象 | 形式 | 例 |
-|------|------|----|
-| React コンポーネント | PascalCase | `EventCard`, `CalendarView` |
-| カスタムフック | `use` プレフィックス + camelCase | `useEvents`, `useAuth` |
-| Next.js ページ（App Router） | `page.tsx` / `layout.tsx` | `app/events/page.tsx` |
+| 対象                         | 形式                             | 例                          |
+| ---------------------------- | -------------------------------- | --------------------------- |
+| React コンポーネント         | PascalCase                       | `EventCard`, `CalendarView` |
+| カスタムフック               | `use` プレフィックス + camelCase | `useEvents`, `useAuth`      |
+| Next.js ページ（App Router） | `page.tsx` / `layout.tsx`        | `app/events/page.tsx`       |
 
 ### バックエンド固有
 
-| 対象 | 形式 | 例 |
-|------|------|----|
-| NestJS モジュール・サービス・コントローラ | PascalCase | `EventsService`, `GroupsController` |
-| DTO クラス | PascalCase + `Dto` サフィックス | `CreateEventDto`, `UpdateCalendarDto` |
-| デコレータ引数 | kebab-case（ルートパス） | `@Controller('group-members')` |
+| 対象                                      | 形式                            | 例                                    |
+| ----------------------------------------- | ------------------------------- | ------------------------------------- |
+| NestJS モジュール・サービス・コントローラ | PascalCase                      | `EventsService`, `GroupsController`   |
+| DTO クラス                                | PascalCase + `Dto` サフィックス | `CreateEventDto`, `UpdateCalendarDto` |
+| デコレータ引数                            | kebab-case（ルートパス）        | `@Controller('group-members')`        |
 
 ---
 
@@ -172,10 +172,7 @@ export default function EventCard({ event, onEdit }: EventCardProps) {
 ```typescript
 // hooks/use-events.ts
 export function useEvents(groupId: string) {
-  const { data, error, isLoading } = useSWR(
-    `/groups/${groupId}/events`,
-    fetcher
-  );
+  const { data, error, isLoading } = useSWR(`/groups/${groupId}/events`, fetcher);
   return { events: data, error, isLoading };
 }
 ```
@@ -263,13 +260,13 @@ export class EventsController { ... }
 
 ### ブランチ命名
 
-| 種別 | 形式 | 例 |
-|------|------|----|
-| 機能追加 | `feature/<内容>` | `feature/event-create` |
-| バグ修正 | `fix/<内容>` | `fix/calendar-color-bug` |
-| ドキュメント | `docs/<内容>` | `docs/api-spec` |
-| リファクタリング | `refactor/<内容>` | `refactor/auth-module` |
-| CI/CD | `ci/<内容>` | `ci/add-test-workflow` |
+| 種別             | 形式              | 例                       |
+| ---------------- | ----------------- | ------------------------ |
+| 機能追加         | `feature/<内容>`  | `feature/event-create`   |
+| バグ修正         | `fix/<内容>`      | `fix/calendar-color-bug` |
+| ドキュメント     | `docs/<内容>`     | `docs/api-spec`          |
+| リファクタリング | `refactor/<内容>` | `refactor/auth-module`   |
+| CI/CD            | `ci/<内容>`       | `ci/add-test-workflow`   |
 
 ### コミットメッセージ
 
@@ -279,14 +276,14 @@ export class EventsController { ... }
 <type>: <概要（日本語可）>
 ```
 
-| type | 用途 |
-|------|------|
-| `feat` | 機能追加 |
-| `fix` | バグ修正 |
-| `docs` | ドキュメントのみの変更 |
+| type       | 用途                               |
+| ---------- | ---------------------------------- |
+| `feat`     | 機能追加                           |
+| `fix`      | バグ修正                           |
+| `docs`     | ドキュメントのみの変更             |
 | `refactor` | 機能変更を伴わないリファクタリング |
-| `ci` | CI/CD 設定の変更 |
-| `chore` | ビルドプロセス・補助ツールの変更 |
+| `ci`       | CI/CD 設定の変更                   |
+| `chore`    | ビルドプロセス・補助ツールの変更   |
 
 ```bash
 # 例
@@ -298,8 +295,6 @@ docs: OpenAPI仕様にイベント更新エンドポイントを追加
 ### PR ルール
 
 - マージ先は常に `develop` ブランチ
-- 1PR = 1機能・1修正を原則とする
-- セルフレビュー後にPRを作成する
 
 ---
 
@@ -311,6 +306,6 @@ docs: OpenAPI仕様にイベント更新エンドポイントを追加
 
 ## 更新履歴
 
-| 日付 | 内容 |
-|------|------|
+| 日付       | 内容     |
+| ---------- | -------- |
 | 2026-06-15 | 初版作成 |
