@@ -1,4 +1,4 @@
-name: Deploy Staging
+name: Deploy Development
 
 on:
   push:
@@ -28,12 +28,12 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   deploy-api:
-    name: Deploy API (Render Staging)
+    name: Deploy API (Render Development)
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render Deploy
         run: |
           curl -s -X POST \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_STAGING }}/deploys" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID_DEV }}/deploys" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Content-Type: application/json"

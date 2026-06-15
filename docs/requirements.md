@@ -114,10 +114,12 @@
 
 ### CI/CD
 
+環境は **開発環境** と **本番環境** の2つのみ（ステージング環境なし）。
+
 | ワークフロー | トリガー | 内容 |
 |------------|---------|------|
 | CI | PR → `develop` / `release` | lint・型チェック・ビルド |
-| Deploy Staging | push → `develop` | Vercel preview + Render staging デプロイ |
+| Deploy Development | push → `develop` | Vercel preview + Render dev デプロイ |
 | Deploy Production | push → `release` | Vercel production + Render production デプロイ |
 
 ## 更新履歴
@@ -128,3 +130,4 @@
 | 2026-06-12 | 複数カレンダー対応（仕様大幅変更） |
 | 2026-06-15 | 開発フロー（PRマージ先）追記 |
 | 2026-06-15 | ブランチ戦略・CI/CD仕様追記 |
+| 2026-06-15 | ステージング環境を廃止し開発・本番の2環境構成に変更 |
