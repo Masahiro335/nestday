@@ -556,6 +556,35 @@ paths:
           description: Server error
 
   /shift-patterns/{id}:
+    get:
+      summary: Get a shift pattern by ID (owner only)
+      tags:
+        - ShiftPatterns
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Shift pattern detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftPattern'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not pattern owner
+        '404':
+          description: Shift pattern not found
+        '500':
+          description: Server error
+
     patch:
       summary: Update a shift pattern (owner only)
       tags:
