@@ -11,7 +11,8 @@
     "start": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --no-error-on-unmatched-pattern",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^10.2.18",
