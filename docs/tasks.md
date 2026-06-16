@@ -391,9 +391,9 @@ start_at <= 月末 AND end_at >= 月初
 | DELETE | `/shifts/:date` | 自分のシフト削除 |
 
 **完了条件**
-- [ ] `PUT /shifts/:date` が同じ日付に再実行しても upsert で正常に動作する
-- [ ] `GET /shifts` でグループ全員分のシフトが返る（自分以外のメンバーも含む）
-- [ ] `shift_pattern` がネストした形で返却される
+- [x] `PUT /shifts/:date` が同じ日付に再実行しても upsert で正常に動作する
+- [x] `GET /shifts` でグループ全員分のシフトが返る（自分以外のメンバーも含む）
+- [x] `shift_pattern` がネストした形で返却される
 
 ---
 
