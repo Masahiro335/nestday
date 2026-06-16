@@ -154,8 +154,8 @@ PORT
   - `auth.admin.createUser()` / `auth.signInWithPassword()` のラッパーメソッドを提供
 
 **完了条件**
-- [ ] `SupabaseService` が他のモジュールから DI で使用できる
-- [ ] `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` が未設定の場合に起動エラーになる
+- [x] `SupabaseService` が他のモジュールから DI で使用できる
+- [x] `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` が未設定の場合に起動エラーになる
 
 ---
 
