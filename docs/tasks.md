@@ -448,8 +448,8 @@ start_at <= 月末 AND end_at >= 月初
 - 共通 UI コンポーネントのスタブを作成（`BottomNav`, `FAB`, `ColorPicker`）
 
 **完了条件**
-- [ ] `npm run dev` でフロントエンドが `localhost:3000` で起動する
-- [ ] `(auth)/` と `(app)/` のルートグループが機能している
+- [x] `npm run dev` でフロントエンドが `localhost:3000` で起動する
+- [x] `(auth)/` と `(app)/` のルートグループが機能している
 
 ---
 
