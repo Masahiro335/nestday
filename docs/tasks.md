@@ -175,7 +175,7 @@ PORT
 
 **完了条件**
 - [x] 有効な JWT を付与したリクエストが `@UseGuards(JwtAuthGuard)` を通過する
-- [ ] 無効な JWT では 401 が返る
+- [x] 無効な JWT では 401 が返る
 - [x] `@CurrentUser()` で `User` オブジェクトが取得できる
 
 ---
