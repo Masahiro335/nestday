@@ -306,7 +306,7 @@ export const taskChecks = {
     {
       match: 'エラーメッセージが表示される',
       command:
-        'test -f apps/web/components/auth/LoginForm.tsx && grep -q "error\|Error" apps/web/components/auth/LoginForm.tsx',
+        'test -f apps/web/components/auth/LoginForm.tsx && grep -qE "error|Error" apps/web/components/auth/LoginForm.tsx',
       type: 'command',
     },
   ],
