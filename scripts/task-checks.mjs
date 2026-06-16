@@ -117,7 +117,7 @@ export const taskChecks = {
     {
       match: 'UUID 形式で返る',
       command:
-        'test -f apps/api/src/groups/groups.service.ts && grep -q "invite_token" apps/api/src/groups/groups.service.ts',
+        'test -f apps/api/src/groups/groups.service.ts && grep -q "inviteToken" apps/api/src/groups/groups.service.ts',
       type: 'command',
     },
     {

@@ -246,10 +246,10 @@ PORT
 | POST | `/groups/join/:token` | グループへの参加（`group_members` に INSERT） |
 
 **完了条件**
-- [ ] グループ作成後、`invite_token` が UUID 形式で返る
-- [ ] `GET /groups/me` でグループ未参加の場合に 404 が返る
-- [ ] `POST /groups/join/:token` ですでに参加済みの場合に 409 が返る
-- [ ] 無効なトークンで 404 が返る
+- [x] グループ作成後、`invite_token` が UUID 形式で返る
+- [x] `GET /groups/me` でグループ未参加の場合に 404 が返る
+- [x] `POST /groups/join/:token` ですでに参加済みの場合に 409 が返る
+- [x] 無効なトークンで 404 が返る
 
 ---
 

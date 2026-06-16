@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { GroupsModule } from './groups/groups.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     PrismaModule,
     SupabaseModule,
     AuthModule,
+    GroupsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
