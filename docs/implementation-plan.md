@@ -224,7 +224,7 @@ apps/api/src/events/
 
 **`GET /events?month=YYYY-MM`**
 - `month` パラメータから月初・月末のタイムスタンプを算出
-- `start_at >= 月初 AND end_at <= 月末 OR (start_at <= 月末 AND end_at >= 月初)` でクロス月イベントも含めて取得
+- `start_at <= 月末 AND end_at >= 月初` でクロス月イベントも含めて取得
 - `calendar_id` クエリパラメータが指定された場合はフィルタリング
 
 **`PATCH /events/:id` / `DELETE /events/:id`**

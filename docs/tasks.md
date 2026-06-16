@@ -387,12 +387,12 @@ start_at <= 月末 AND end_at >= 月初
 | メソッド | パス | 説明 |
 |---------|------|------|
 | GET | `/shifts?month=YYYY-MM` | グループ全員の月別シフト（`shift_pattern` JOIN） |
-| PUT | `/shifts/:date` | 自分のシフット割り当て（`upsert`） |
-| DELETE | `/shifts/:date` | 自分のシフット削除 |
+| PUT | `/shifts/:date` | 自分のシフト割り当て（`upsert`） |
+| DELETE | `/shifts/:date` | 自分のシフト削除 |
 
 **完了条件**
 - [ ] `PUT /shifts/:date` が同じ日付に再実行しても upsert で正常に動作する
-- [ ] `GET /shifts` でグループ全員分のシフットが返る（自分以外のメンバーも含む）
+- [ ] `GET /shifts` でグループ全員分のシフトが返る（自分以外のメンバーも含む）
 - [ ] `shift_pattern` がネストした形で返却される
 
 ---
@@ -601,14 +601,14 @@ start_at <= 月末 AND end_at >= 月初
 **作業内容**
 - `app/(app)/work/page.tsx`
 - `components/work/WorkCalendarGrid.tsx` - グループ全員のシフト月表示
-- `components/work/ShiftCell.tsx` + シフットバッジ
-- `components/work/ShiftSelectPanel.tsx` - 日付タップ時のシフット選択パネル
-- `hooks/use-shifts.ts` - SWR でシフットをフェッチ
+- `components/work/ShiftCell.tsx` + シフトバッジ
+- `components/work/ShiftSelectPanel.tsx` - 日付タップ時のシフト選択パネル
+- `hooks/use-shifts.ts` - SWR でシフトをフェッチ
 
 **完了条件**
-- [ ] グループ全員のシフットが月表示で確認できる
-- [ ] 自分の日付をタップするとシフット選択パネルが開く
-- [ ] パターンを選択するとシフットが登録・更新される
+- [ ] グループ全員のシフトが月表示で確認できる
+- [ ] 自分の日付をタップするとシフト選択パネルが開く
+- [ ] パターンを選択するとシフトが登録・更新される
 
 ---
 

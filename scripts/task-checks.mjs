@@ -216,7 +216,7 @@ export const taskChecks = {
       type: 'command',
     },
     {
-      match: '全員分のシフット',
+      match: '全員分のシフト',
       command:
         'test -f apps/api/src/shifts/shifts.service.ts && grep -q "group_id\|groupId" apps/api/src/shifts/shifts.service.ts',
       type: 'command',
@@ -375,17 +375,17 @@ export const taskChecks = {
 
   T19: [
     {
-      match: 'グループ全員のシフット',
+      match: 'グループ全員のシフト',
       command: 'test -f apps/web/components/work/WorkCalendarGrid.tsx',
       type: 'command',
     },
     {
-      match: 'シフット選択パネルが開く',
+      match: 'シフト選択パネルが開く',
       command: 'test -f apps/web/components/work/ShiftSelectPanel.tsx',
       type: 'command',
     },
     {
-      match: 'シフットが登録・更新される',
+      match: 'シフトが登録・更新される',
       command:
         'test -f apps/web/hooks/use-shifts.ts && grep -q "PUT\|put\|shifts" apps/web/hooks/use-shifts.ts',
       type: 'command',
