@@ -191,7 +191,7 @@ export const taskChecks = {
     {
       match: 'null でも作成できる',
       command:
-        'test -f apps/api/src/shifts/dto/create-shift-pattern.dto.ts && grep -q "is_day_off\|isDayOff" apps/api/src/shifts/dto/create-shift-pattern.dto.ts',
+        'test -f apps/api/src/shifts/dto/create-shift-pattern.dto.ts && grep -qE "is_day_off|isDayOff" apps/api/src/shifts/dto/create-shift-pattern.dto.ts',
       type: 'command',
     },
     {
@@ -218,13 +218,13 @@ export const taskChecks = {
     {
       match: '全員分のシフト',
       command:
-        'test -f apps/api/src/shifts/shifts.service.ts && grep -q "group_id\|groupId" apps/api/src/shifts/shifts.service.ts',
+        'test -f apps/api/src/shifts/shifts.service.ts && grep -qE "group_id|groupId" apps/api/src/shifts/shifts.service.ts',
       type: 'command',
     },
     {
       match: 'ネストした形で返却',
       command:
-        'test -f apps/api/src/shifts/shifts.service.ts && grep -q "shift_pattern\|include" apps/api/src/shifts/shifts.service.ts',
+        'test -f apps/api/src/shifts/shifts.service.ts && grep -qE "shift_pattern|include" apps/api/src/shifts/shifts.service.ts',
       type: 'command',
     },
   ],
