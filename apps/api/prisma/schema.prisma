@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  name         String?
+  avatarUrl    String?       @map("avatar_url")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  ownedGroups  Group[]       @relation("GroupOwner")
+  groupMembers GroupMember[]
+  calendars    Calendar[]
+  events       Event[]
+  shiftPatterns ShiftPattern[]
+  shifts       Shift[]
+
+  @@map("users")
+}
+
+model Group {
+  id          String        @id @default(uuid())
+  name        String
+  inviteToken String        @unique @map("invite_token")
+  ownerId     String        @map("owner_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members     GroupMember[]
+  calendars   Calendar[]
+  events      Event[]
+  shifts      Shift[]
+
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String   @id @default(uuid())
+  groupId  String   @map("group_id")
+  userId   String   @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+  group    Group    @relation(fields: [groupId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
+  @@map("group_members")
+}
+
+model Calendar {
+  id        String   @id @default(uuid())
+  groupId   String   @map("group_id")
+  name      String
+  color     String
+  createdBy String   @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  group     Group    @relation(fields: [groupId], references: [id])
+  creator   User     @relation(fields: [createdBy], references: [id])
+  events    Event[]
+
+  @@map("calendars")
+}
+
+model Event {
+  id         String   @id @default(uuid())
+  groupId    String   @map("group_id")
+  calendarId String   @map("calendar_id")
+  createdBy  String   @map("created_by")
+  title      String
+  memo       String?
+  location   String?
+  color      String?
+  startAt    DateTime @map("start_at")
+  endAt      DateTime @map("end_at")
+  isAllDay   Boolean  @default(false) @map("is_all_day")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  group      Group    @relation(fields: [groupId], references: [id])
+  calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
+  creator    User     @relation(fields: [createdBy], references: [id])
+
+  @@map("events")
+}
+
+model ShiftPattern {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  name         String
+  color        String
+  startTime    String?  @map("start_time")
+  endTime      String?  @map("end_time")
+  breakMinutes Int      @default(0) @map("break_minutes")
+  isDayOff     Boolean  @default(false) @map("is_day_off")
+  sortOrder    Int      @default(0) @map("sort_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  user         User     @relation(fields: [userId], references: [id])
+  shifts       Shift[]
+
+  @@map("shift_patterns")
+}
+
+model Shift {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  groupId        String       @map("group_id")
+  shiftPatternId String       @map("shift_pattern_id")
+  date           DateTime     @db.Date
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  user           User         @relation(fields: [userId], references: [id])
+  group          Group        @relation(fields: [groupId], references: [id])
+  shiftPattern   ShiftPattern @relation(fields: [shiftPatternId], references: [id])
+
+  @@unique([userId, date])
+  @@map("shifts")
+}

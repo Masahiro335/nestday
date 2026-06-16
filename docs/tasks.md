@@ -104,9 +104,9 @@ User, Group, GroupMember, Calendar, Event, ShiftPattern, Shift
 ```
 
 **完了条件**
-- [ ] `npx prisma generate` が通る
-- [ ] `PrismaService` を `app.module.ts` でグローバル登録できる
-- [ ] `unique` 制約（`group_members.user_id`, `shifts.(user_id, date)`）が定義されている
+- [x] `npx prisma generate` が通る
+- [x] `PrismaService` を `app.module.ts` でグローバル登録できる
+- [x] `unique` 制約（`group_members.user_id`, `shifts.(user_id, date)`）が定義されている
 
 ---
 
