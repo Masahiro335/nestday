@@ -168,7 +168,7 @@ export const taskChecks = {
     {
       match: 'YYYY-MM` 形式以外のとき 400',
       command:
-        'test -f apps/api/src/events/dto/get-events-query.dto.ts && grep -q "Matches\|YYYY-MM\|month" apps/api/src/events/dto/get-events-query.dto.ts',
+        'test -f apps/api/src/events/dto/get-events-query.dto.ts && grep -qE "Matches|YYYY-MM|month" apps/api/src/events/dto/get-events-query.dto.ts',
       type: 'command',
     },
     {
@@ -180,7 +180,7 @@ export const taskChecks = {
     {
       match: 'クロス月イベント',
       command:
-        'test -f apps/api/src/events/events.service.ts && grep -q "start_at\|end_at" apps/api/src/events/events.service.ts',
+        'test -f apps/api/src/events/events.service.ts && grep -qE "start_at|end_at" apps/api/src/events/events.service.ts',
       type: 'command',
     },
   ],
