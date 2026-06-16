@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase';
 import api from '@/lib/api';
 
 export default function LoginForm() {
@@ -18,7 +18,7 @@ export default function LoginForm() {
     setError(null);
     setLoading(true);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: authError } = await createClient().auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError('メールアドレスまたはパスワードが正しくありません');

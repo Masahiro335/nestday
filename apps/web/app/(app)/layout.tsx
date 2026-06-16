@@ -3,6 +3,8 @@ import { redirect } from 'next/navigation';
 import { createServerClient } from '@supabase/ssr';
 import BottomNav from '@/components/ui/BottomNav';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = cookies();
 
