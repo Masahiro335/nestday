@@ -492,8 +492,8 @@ start_at <= 月末 AND end_at >= 月初
   - レスポンスインターセプター（401 で `/login` にリダイレクト）
 
 **完了条件**
-- [ ] API リクエスト時に `Authorization: Bearer <token>` ヘッダが自動付与される
-- [ ] 401 レスポンス時に `/login` に遷移する
+- [x] API リクエスト時に `Authorization: Bearer <token>` ヘッダが自動付与される
+- [x] 401 レスポンス時に `/login` に遷移する
 
 ---
 
