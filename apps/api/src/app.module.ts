@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { GroupsModule } from './groups/groups.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { EventsModule } from './events/events.module';
+import { ShiftsModule } from './shifts/shifts.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { EventsModule } from './events/events.module';
     GroupsModule,
     CalendarsModule,
     EventsModule,
+    ShiftsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

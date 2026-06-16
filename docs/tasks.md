@@ -366,9 +366,9 @@ start_at <= 月末 AND end_at >= 月初
 | DELETE | `/shift-patterns/:id` | パターン削除（所有者のみ） |
 
 **完了条件**
-- [ ] `is_day_off: true` のとき `start_time` / `end_time` が null でも作成できる
-- [ ] 他のユーザーのパターンへの操作は 403 が返る
-- [ ] `GET /shift-patterns` の返却順が `sort_order` 昇順である
+- [x] `is_day_off: true` のとき `start_time` / `end_time` が null でも作成できる
+- [x] 他のユーザーのパターンへの操作は 403 が返る
+- [x] `GET /shift-patterns` の返却順が `sort_order` 昇順である
 
 ---
 
