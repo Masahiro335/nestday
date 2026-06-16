@@ -136,9 +136,9 @@ PORT
 ```
 
 **完了条件**
-- [ ] `npm run dev` でサーバーが `localhost:3001` で起動する
-- [ ] `http://localhost:3001/api/docs` で Swagger UI が表示される
-- [ ] `GET /api/v1` に 404 が返る（ルート未定義のため正常）
+- [x] `npm run dev` でサーバーが `localhost:3001` で起動する
+- [x] `http://localhost:3001/api/docs` で Swagger UI が表示される
+- [x] `GET /api/v1` に 404 が返る（ルート未定義のため正常）
 
 ---
 
@@ -653,9 +653,35 @@ T12(Web基盤) → T13(Middleware) → T14(APIクライアント)   T06(Groups)
 
 ---
 
+## 外部サービスアカウントの準備タイミング
+
+### Supabase
+
+**T05（Auth モジュール）の実装・テスト前までに準備が必要**
+
+| タスク | 必要性 |
+|-------|--------|
+| T03 Supabase モジュール | コード自体はダミー値で実装可能。完了条件「未設定時に起動エラー」の確認に実 URL があると安心 |
+| T04 JWT 認証ガード | `SUPABASE_JWT_SECRET` が必要（ダミー文字列でも動作確認は可能） |
+| **T05 Auth モジュール**（実質の期限） | `supabase.auth.admin.createUser()` / `signInWithPassword()` を実際に呼ぶため、本物のプロジェクトが必須 |
+
+**準備すること:**
+- Supabase プロジェクト作成
+- `SUPABASE_URL`・`SUPABASE_SERVICE_ROLE_KEY`・`SUPABASE_JWT_SECRET` の取得
+- DBマイグレーション（`schema.dbml` を元にテーブル作成）
+
+### Render
+
+**T05〜T06 が `develop` にマージされ、CI/CD を動かしたいタイミングで準備**
+
+要件書の CI/CD 仕様では `push → develop` で Render dev デプロイが走る。現時点は feature ブランチ作業中のため不要。Auth・Groups が完成して `develop` にマージし始める T06 前後が最適なタイミング。
+
+---
+
 ## 更新履歴
 
 | 日付 | 内容 |
 |------|------|
 | 2026-06-16 | 初版作成 |
 | 2026-06-16 | 完了条件の自動チェックスクリプトを追記 |
+| 2026-06-16 | 外部サービスアカウントの準備タイミングを追記 |
