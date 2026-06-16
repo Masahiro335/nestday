@@ -284,7 +284,7 @@ export const taskChecks = {
     {
       match: '401 レスポンス時に',
       command:
-        'test -f apps/web/lib/api.ts && grep -q "401\|login" apps/web/lib/api.ts',
+        'test -f apps/web/lib/api.ts && grep -qE "401|login" apps/web/lib/api.ts',
       type: 'command',
     },
   ],
