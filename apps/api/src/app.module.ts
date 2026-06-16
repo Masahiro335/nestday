@@ -6,6 +6,7 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { GroupsModule } from './groups/groups.module';
+import { CalendarsModule } from './calendars/calendars.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { GroupsModule } from './groups/groups.module';
     SupabaseModule,
     AuthModule,
     GroupsModule,
+    CalendarsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

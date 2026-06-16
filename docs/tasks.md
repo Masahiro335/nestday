@@ -284,9 +284,9 @@ PORT
 | DELETE | `/calendars/:id` | カレンダー削除（紐づくイベントは CASCADE） |
 
 **完了条件**
-- [ ] グループ未参加ユーザーが `GET /calendars` を呼ぶと 404 が返る
-- [ ] `DELETE /calendars/:id` で存在しない ID に 404 が返る
-- [ ] `color` が `#RRGGBB` 形式以外のとき 400 が返る
+- [x] グループ未参加ユーザーが `GET /calendars` を呼ぶと 404 が返る
+- [x] `DELETE /calendars/:id` で存在しない ID に 404 が返る
+- [x] `color` が `#RRGGBB` 形式以外のとき 400 が返る
 
 ---
 
