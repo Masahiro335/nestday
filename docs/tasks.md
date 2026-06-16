@@ -175,7 +175,7 @@ PORT
 
 **完了条件**
 - [x] 有効な JWT を付与したリクエストが `@UseGuards(JwtAuthGuard)` を通過する
-- [ ] 無効な JWT では 401 が返る
+- [x] 無効な JWT では 401 が返る
 - [x] `@CurrentUser()` で `User` オブジェクトが取得できる
 
 ---
@@ -209,10 +209,10 @@ PORT
 | POST | `/auth/login` | Supabase Auth でログイン → JWT + User を返す |
 
 **完了条件**
-- [ ] `POST /api/v1/auth/register` で 201 + User が返る
-- [ ] `POST /api/v1/auth/login` で 200 + `{ user, token }` が返る
-- [ ] メール重複時に 400 が返る
-- [ ] 認証情報誤りで 401 が返る
+- [x] `POST /api/v1/auth/register` で 201 + User が返る
+- [x] `POST /api/v1/auth/login` で 200 + `{ user, token }` が返る
+- [x] メール重複時に 400 が返る
+- [x] 認証情報誤りで 401 が返る
 
 ---
 
