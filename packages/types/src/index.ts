@@ -48,6 +48,7 @@ export interface Event {
   created_by: string;
   title: string;
   memo?: string;
+  location?: string;
   color?: string;
   start_at: string;
   end_at: string;
@@ -76,6 +77,12 @@ export interface AuthLoginResponse {
 }
 
 // Groups
+export interface GroupPreview {
+  id: string;
+  name: string;
+  member_count: number;
+}
+
 export interface CreateGroupRequest {
   name: string;
 }
@@ -96,6 +103,7 @@ export interface CreateEventRequest {
   calendar_id: string;
   title: string;
   memo?: string;
+  location?: string;
   color?: string;
   start_at: string;
   end_at: string;
@@ -105,10 +113,62 @@ export interface CreateEventRequest {
 export interface UpdateEventRequest {
   title?: string;
   memo?: string;
+  location?: string;
   color?: string;
   start_at?: string;
   end_at?: string;
   is_all_day?: boolean;
+}
+
+// ShiftPatterns
+export interface ShiftPattern {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string;
+  start_time: string | null;
+  end_time: string | null;
+  break_minutes: number;
+  is_day_off: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateShiftPatternRequest {
+  name: string;
+  color: string;
+  start_time?: string;
+  end_time?: string;
+  break_minutes?: number;
+  is_day_off?: boolean;
+  sort_order?: number;
+}
+
+export interface UpdateShiftPatternRequest {
+  name?: string;
+  color?: string;
+  start_time?: string;
+  end_time?: string;
+  break_minutes?: number;
+  is_day_off?: boolean;
+  sort_order?: number;
+}
+
+// Shifts
+export interface Shift {
+  id: string;
+  user_id: string;
+  group_id: string;
+  shift_pattern_id: string;
+  shift_pattern?: ShiftPattern;
+  date: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssignShiftRequest {
+  shift_pattern_id: string;
 }
 
 // UI Constants
