@@ -326,7 +326,7 @@ export const taskChecks = {
     {
       match: '所属済みでの参加試行にエラー',
       command:
-        'test -f "apps/web/app/(app)/join/[token]/page.tsx" && grep -q "409\|already\|すでに" "apps/web/app/(app)/join/[token]/page.tsx"',
+        'test -f "apps/web/app/(app)/join/[token]/page.tsx" && grep -qE "409|already|すでに" "apps/web/app/(app)/join/[token]/page.tsx"',
       type: 'command',
     },
   ],
