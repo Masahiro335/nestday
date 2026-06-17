@@ -35,7 +35,7 @@ export default function PrivateCalendarPage() {
   const selectedEvents = selectedDate
     ? events.filter((ev) => {
         const ds = selectedDate;
-        return ev.start_at.slice(0, 10) <= ds && ds <= ev.end_at.slice(0, 10);
+        return ev.startAt.slice(0, 10) <= ds && ds <= ev.endAt.slice(0, 10);
       })
     : [];
 

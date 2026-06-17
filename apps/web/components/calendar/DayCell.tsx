@@ -1,9 +1,9 @@
-import type { Event } from '@calendar-share/types';
+import type { ApiEvent } from '@/hooks/use-events';
 import EventBadge from './EventBadge';
 
 interface DayCellProps {
   date: Date;
-  events: Event[];
+  events: ApiEvent[];
   isToday: boolean;
   isCurrentMonth: boolean;
   onClick: () => void;

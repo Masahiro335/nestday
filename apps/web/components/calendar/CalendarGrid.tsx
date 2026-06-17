@@ -1,12 +1,12 @@
 'use client';
 
-import type { Event } from '@calendar-share/types';
+import type { ApiEvent } from '@/hooks/use-events';
 import DayCell from './DayCell';
 
 interface CalendarGridProps {
   year: number;
   month: number;
-  events: Event[];
+  events: ApiEvent[];
   onSelectDate: (date: string) => void;
 }
 
@@ -36,8 +36,8 @@ export default function CalendarGrid({ year, month, events, onSelectDate }: Cale
   function eventsForDay(date: Date) {
     const ds = toDateStr(date);
     return events.filter((ev) => {
-      const start = ev.start_at.slice(0, 10);
-      const end = ev.end_at.slice(0, 10);
+      const start = ev.startAt.slice(0, 10);
+      const end = ev.endAt.slice(0, 10);
       return start <= ds && ds <= end;
     });
   }

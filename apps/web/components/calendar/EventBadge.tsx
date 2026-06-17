@@ -1,7 +1,7 @@
-import type { Event } from '@calendar-share/types';
+import type { ApiEvent } from '@/hooks/use-events';
 
 interface EventBadgeProps {
-  event: Event;
+  event: ApiEvent;
 }
 
 export default function EventBadge({ event }: EventBadgeProps) {

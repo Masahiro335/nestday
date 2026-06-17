@@ -4,7 +4,25 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ColorPicker from '@/components/ui/ColorPicker';
 import api from '@/lib/api';
-import type { Event } from '@calendar-share/types';
+
+interface ApiEvent {
+  id: string;
+  calendarId: string;
+  createdBy: string;
+  title: string;
+  memo?: string;
+  location?: string;
+  color?: string;
+  startAt: string;
+  endAt: string;
+  isAllDay: boolean;
+}
+
+interface ApiCalendar {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface EventFormProps {
   eventId?: string;
@@ -16,6 +34,7 @@ export default function EventForm({ eventId }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
 
+  const [calendarId, setCalendarId] = useState('');
   const [title, setTitle] = useState('');
   const [startAt, setStartAt] = useState(() => {
     const now = new Date();
@@ -34,39 +53,56 @@ export default function EventForm({ eventId }: EventFormProps) {
   const [showDetail, setShowDetail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initializing, setInitializing] = useState(isEdit);
+  const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    if (!eventId) return;
-    api
-      .get<Event>(`/events/${eventId}`)
-      .then(({ data }) => {
-        setTitle(data.title);
-        setStartAt(data.start_at.slice(0, 16));
-        setEndAt(data.end_at.slice(0, 16));
-        setIsAllDay(data.is_all_day);
-        setColor(data.color ?? DEFAULT_COLOR);
-        setLocation(data.location ?? '');
-        setMemo(data.memo ?? '');
-        if (data.location || data.memo) setShowDetail(true);
-      })
-      .catch(() => router.replace('/'))
-      .finally(() => setInitializing(false));
+    async function init() {
+      try {
+        // カレンダー一覧取得（最初のカレンダーを使用）
+        const { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
+        if (calendars.length > 0) setCalendarId(calendars[0].id);
+
+        if (eventId) {
+          const { data } = await api.get<ApiEvent>(`/events/${eventId}`);
+          setTitle(data.title);
+          setStartAt(data.startAt.slice(0, 16));
+          setEndAt(data.endAt.slice(0, 16));
+          setIsAllDay(data.isAllDay);
+          setColor(data.color ?? DEFAULT_COLOR);
+          setLocation(data.location ?? '');
+          setMemo(data.memo ?? '');
+          if (data.location || data.memo) setShowDetail(true);
+          setCalendarId(data.calendarId);
+        }
+      } catch {
+        if (eventId) router.replace('/');
+      } finally {
+        setInitializing(false);
+      }
+    }
+    init();
   }, [eventId, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     const payload = {
+      calendarId,
       title,
-      start_at: isAllDay ? startAt.slice(0, 10) + 'T00:00:00Z' : new Date(startAt).toISOString(),
-      end_at: isAllDay ? endAt.slice(0, 10) + 'T23:59:59Z' : new Date(endAt).toISOString(),
-      is_all_day: isAllDay,
+      startAt: isAllDay
+        ? startAt.slice(0, 10) + 'T00:00:00.000Z'
+        : new Date(startAt).toISOString(),
+      endAt: isAllDay
+        ? endAt.slice(0, 10) + 'T23:59:59.000Z'
+        : new Date(endAt).toISOString(),
+      isAllDay,
       color,
       location: location || undefined,
       memo: memo || undefined,
     };
+
     try {
       if (isEdit) {
         await api.patch(`/events/${eventId}`, payload);
@@ -105,8 +141,8 @@ export default function EventForm({ eventId }: EventFormProps) {
         <span style={{ fontWeight: 700, fontSize: 16 }}>{isEdit ? '予定編集' : '予定作成'}</span>
         <button
           onClick={handleSubmit as unknown as React.MouseEventHandler}
-          disabled={loading || !title}
-          style={{ color: loading || !title ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
+          disabled={loading || !title || !calendarId}
+          style={{ color: loading || !title || !calendarId ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
         >
           保存
         </button>

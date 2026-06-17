@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import type { Event } from '@calendar-share/types';
+import type { ApiEvent } from '@/hooks/use-events';
 
 interface DayDrawerProps {
   isOpen: boolean;
   date: string | null;
-  events: Event[];
+  events: ApiEvent[];
   onClose: () => void;
   currentUserId?: string;
 }
 
-function formatTime(ev: Event): string {
-  if (ev.is_all_day) return '終日';
-  return ev.start_at.slice(11, 16);
+function formatTime(ev: ApiEvent): string {
+  if (ev.isAllDay) return '終日';
+  return ev.startAt.slice(11, 16);
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -96,7 +96,7 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
                   }}
                 />
                 <span style={{ flex: 1, fontSize: 15 }}>{ev.title}</span>
-                {currentUserId && ev.created_by === currentUserId && (
+                {currentUserId && ev.createdBy === currentUserId && (
                   <Link
                     href={`/events/${ev.id}/edit`}
                     style={{ fontSize: 12, color: '#3b82f6' }}
