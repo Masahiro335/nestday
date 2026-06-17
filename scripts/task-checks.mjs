@@ -387,7 +387,7 @@ export const taskChecks = {
     {
       match: 'シフトが登録・更新される',
       command:
-        'test -f apps/web/hooks/use-shifts.ts && grep -q "PUT\|put\|shifts" apps/web/hooks/use-shifts.ts',
+        'test -f apps/web/hooks/use-shifts.ts && grep -qE "PUT|put|shifts" apps/web/hooks/use-shifts.ts',
       type: 'command',
     },
   ],
