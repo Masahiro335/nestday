@@ -401,13 +401,13 @@ export const taskChecks = {
     {
       match: '時間入力欄が非表示になる',
       command:
-        'test -f apps/web/components/work/ShiftPatternForm.tsx && grep -q "isDayOff\|is_day_off" apps/web/components/work/ShiftPatternForm.tsx',
+        'test -f apps/web/components/work/ShiftPatternForm.tsx && grep -qE "isDayOff|is_day_off" apps/web/components/work/ShiftPatternForm.tsx',
       type: 'command',
     },
     {
       match: '自動計算される',
       command:
-        'test -f apps/web/components/work/ShiftPatternForm.tsx && grep -q "workingTime\|勤務時間\|break" apps/web/components/work/ShiftPatternForm.tsx',
+        'test -f apps/web/components/work/ShiftPatternForm.tsx && grep -qE "workingTime|勤務時間|break" apps/web/components/work/ShiftPatternForm.tsx',
       type: 'command',
     },
   ],
