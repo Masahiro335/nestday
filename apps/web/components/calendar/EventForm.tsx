@@ -58,9 +58,16 @@ export default function EventForm({ eventId }: EventFormProps) {
   useEffect(() => {
     async function init() {
       try {
-        // カレンダー一覧取得（最初のカレンダーを使用）
-        const { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
-        if (calendars.length > 0) setCalendarId(calendars[0].id);
+        // カレンダー一覧取得。なければ「プライベート」を自動作成
+        let { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
+        if (calendars.length === 0) {
+          const { data: created } = await api.post<ApiCalendar>('/calendars', {
+            name: 'プライベート',
+            color: '#3b82f6',
+          });
+          calendars = [created];
+        }
+        setCalendarId(calendars[0].id);
 
         if (eventId) {
           const { data } = await api.get<ApiEvent>(`/events/${eventId}`);
@@ -141,8 +148,8 @@ export default function EventForm({ eventId }: EventFormProps) {
         <span style={{ fontWeight: 700, fontSize: 16 }}>{isEdit ? '予定編集' : '予定作成'}</span>
         <button
           onClick={handleSubmit as unknown as React.MouseEventHandler}
-          disabled={loading || !title || !calendarId}
-          style={{ color: loading || !title || !calendarId ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
+          disabled={loading || !title}
+          style={{ color: loading || !title ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
         >
           保存
         </button>
