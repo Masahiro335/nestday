@@ -137,7 +137,7 @@ export default function EventForm({ eventId }: EventFormProps) {
     <div style={{ maxWidth: 480, margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-        <button onClick={() => router.back()} style={{ fontSize: 22, color: '#6b7280' }}>✕</button>
+        <button type="button" onClick={() => router.back()} style={{ fontSize: 22, color: '#6b7280' }}>✕</button>
         <span style={{ fontWeight: 700, fontSize: 16 }}>{isEdit ? '予定編集' : '予定作成'}</span>
         <button
           onClick={handleSubmit as unknown as React.MouseEventHandler}
