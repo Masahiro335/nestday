@@ -92,14 +92,14 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
                   onClick={() => handleEventClick(ev)}
                   style={{
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     gap: 12,
                     padding: '12px 0',
                     borderBottom: '1px solid #f3f4f6',
                     cursor: 'pointer',
                   }}
                 >
-                  <span style={{ color: '#6b7280', fontSize: 13, minWidth: 100 }}>
+                  <span style={{ color: '#6b7280', fontSize: 13, minWidth: 100, paddingTop: 2 }}>
                     {formatTime(ev)}
                   </span>
                   <span
@@ -109,10 +109,23 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
                       borderRadius: '50%',
                       background: ev.color ?? '#3b82f6',
                       flexShrink: 0,
+                      marginTop: 4,
                     }}
                   />
-                  <span style={{ flex: 1, fontSize: 15 }}>{ev.title}</span>
-                  <span style={{ fontSize: 12, color: isOwner ? '#3b82f6' : '#d1d5db' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 500 }}>{ev.title}</div>
+                    {ev.location && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        📍 {ev.location}
+                      </div>
+                    )}
+                    {ev.memo && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        💬 {ev.memo}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 12, color: isOwner ? '#3b82f6' : '#d1d5db', paddingTop: 2, flexShrink: 0 }}>
                     {isOwner ? '編集 ›' : '›'}
                   </span>
                 </div>
