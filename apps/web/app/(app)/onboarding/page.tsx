@@ -1,3 +1,16 @@
+import OnboardingForm from '@/components/group/OnboardingForm';
+
 export default function OnboardingPage() {
-  return <main>オンボーディング（未実装）</main>;
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <OnboardingForm />
+    </main>
+  );
 }
