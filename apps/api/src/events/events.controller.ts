@@ -32,6 +32,12 @@ export class EventsController {
     return this.eventsService.findAll(query, user);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get an event by ID' })
+  findOne(@Param('id') id: string) {
+    return this.eventsService.findOne(id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create an event' })
   create(@Body() dto: CreateEventDto, @CurrentUser() user: User) {

@@ -19,6 +19,12 @@ export class EventsService {
     return membership.groupId;
   }
 
+  async findOne(id: string) {
+    const event = await this.prisma.event.findUnique({ where: { id } });
+    if (!event) throw new NotFoundException('Event not found');
+    return event;
+  }
+
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupId = await this.getGroupId(currentUser.id);
 
