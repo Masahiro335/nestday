@@ -368,7 +368,7 @@ export const taskChecks = {
     {
       match: '削除確認後にイベントが削除',
       command:
-        'test -f apps/web/components/calendar/EventForm.tsx && grep -q "delete\|削除" apps/web/components/calendar/EventForm.tsx',
+        'test -f apps/web/components/calendar/EventForm.tsx && grep -qE "delete|削除" apps/web/components/calendar/EventForm.tsx',
       type: 'command',
     },
   ],
