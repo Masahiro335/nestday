@@ -6,10 +6,21 @@ import BottomNav from '@/components/ui/BottomNav';
 export const dynamic = 'force-dynamic';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const cookieStore = cookies();
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
 
+  // Supabase 未設定時（ローカル開発等）は認証チェックをスキップ
+  if (!supabaseUrl.startsWith('http')) {
+    return (
+      <div style={{ paddingBottom: 'var(--bottom-nav-height)' }}>
+        {children}
+        <BottomNav />
+      </div>
+    );
+  }
+
+  const cookieStore = cookies();
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    supabaseUrl,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
