@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import api from '@/lib/api';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -24,18 +25,24 @@ export default function RegisterForm() {
 
     setLoading(true);
 
-    const { error: authError } = await createClient().auth.signUp({
-      email,
-      password,
-      options: { data: { name } },
-    });
-
-    if (authError) {
+    // API 経由で登録（service role key でメール確認不要）
+    try {
+      await api.post('/auth/register', { email, password, name: name || undefined });
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status;
       setError(
-        authError.message.includes('already')
+        status === 400
           ? 'このメールアドレスはすでに登録されています'
           : '登録に失敗しました。もう一度お試しください',
       );
+      setLoading(false);
+      return;
+    }
+
+    // 登録成功後、Supabase Auth でログインしてセッションを確立
+    const { error: loginError } = await createClient().auth.signInWithPassword({ email, password });
+    if (loginError) {
+      setError('登録は完了しましたが、ログインに失敗しました。ログイン画面からログインしてください');
       setLoading(false);
       return;
     }
