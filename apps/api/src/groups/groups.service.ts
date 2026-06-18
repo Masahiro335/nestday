@@ -35,6 +35,18 @@ export class GroupsService {
     return this.formatGroup(group);
   }
 
+  async getMyGroups(currentUser: User) {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId: currentUser.id },
+    });
+    const groups = await Promise.all(
+      memberships.map((m) =>
+        this.prisma.group.findUnique({ where: { id: m.groupId }, ...memberInclude }),
+      ),
+    );
+    return groups.filter(Boolean).map((g) => this.formatGroup(g!));
+  }
+
   async getMyGroup(currentUser: User) {
     const membership = await this.prisma.groupMember.findFirst({
       where: { userId: currentUser.id },

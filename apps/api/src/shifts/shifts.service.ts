@@ -44,6 +44,7 @@ export class ShiftsService {
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupIds = await this.getGroupIds(currentUser.id);
+    const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
 
     const [year, month] = query.month.split('-').map(Number);
     const monthStart = new Date(year, month - 1, 1);
@@ -51,7 +52,7 @@ export class ShiftsService {
 
     return this.prisma.shift.findMany({
       where: {
-        groupId: { in: groupIds },
+        groupId: { in: targetGroupIds },
         date: { gte: monthStart, lte: monthEnd },
       },
       ...shiftInclude,
