@@ -7,9 +7,10 @@ Table users {
   password_hash string [not null]
   name string
   avatar_url string
+  memo string [note: '自己紹介・ひとことメモ（最大200文字）']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
-  
+
   indexes {
     email
   }

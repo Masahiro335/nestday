@@ -14,6 +14,7 @@ model User {
   passwordHash  String         @map("password_hash")
   name          String?
   avatarUrl     String?        @map("avatar_url")
+  memo          String?
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
   calendars     Calendar[]

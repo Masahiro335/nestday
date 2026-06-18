@@ -88,6 +88,54 @@ paths:
         '500':
           description: Server error
 
+  /users/me:
+    get:
+      summary: Get current user profile
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+    patch:
+      summary: Update current user profile (name / memo)
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 50
+                memo:
+                  type: string
+                  maxLength: 200
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+
   /groups:
     get:
       summary: Get all groups the current user belongs to
@@ -211,6 +259,43 @@ paths:
           description: Invalid invite token
         '409':
           description: User already in this group
+        '500':
+          description: Server error
+
+  /groups/{groupId}/members/{userId}:
+    delete:
+      summary: Remove a member from a group
+      description: |
+        グループオーナーは任意のメンバーを退会させることができる。
+        メンバー本人も自分自身を退会させることができる（自己退会）。
+        グループオーナー自身の退会は不可。
+        退会後も招待リンクから再参加可能。
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Member removed successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not group owner or not the member themselves / owner cannot remove themselves
+        '404':
+          description: Group or member not found
         '500':
           description: Server error
 
@@ -845,6 +930,11 @@ components:
         avatarUrl:
           type: string
           format: uri
+        memo:
+          type: string
+          nullable: true
+          maxLength: 200
+          description: 自己紹介・ひとことメモ
         createdAt:
           type: string
           format: date-time

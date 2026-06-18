@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -109,6 +110,26 @@ export class GroupsService {
     return this.formatGroup(updated!);
   }
 
+  async removeMember(groupId: string, targetUserId: string, currentUser: User) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('Group not found');
+
+    const isSelf = targetUserId === currentUser.id;
+    const isGroupOwner = group.ownerId === currentUser.id;
+
+    if (!isSelf && !isGroupOwner) throw new ForbiddenException('Only the group owner or the member themselves can remove a member');
+    if (isSelf && isGroupOwner) throw new ForbiddenException('Group owner cannot leave their own group');
+
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId: targetUserId } },
+    });
+    if (!membership) throw new NotFoundException('Member not found');
+
+    await this.prisma.groupMember.delete({
+      where: { groupId_userId: { groupId, userId: targetUserId } },
+    });
+  }
+
   private formatGroup(
     group: Awaited<ReturnType<typeof this.prisma.group.findUnique>> & {
       members: { user: User; id: string; groupId: string; userId: string; joinedAt: Date }[];
@@ -126,6 +147,7 @@ export class GroupsService {
         email: m.user.email,
         name: m.user.name,
         avatarUrl: m.user.avatarUrl,
+        memo: m.user.memo,
         createdAt: m.user.createdAt,
         updatedAt: m.user.updatedAt,
         joinedAt: m.joinedAt,
