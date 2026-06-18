@@ -79,7 +79,7 @@ export default function ShiftSelectPanel({
             </p>
           )}
           {patterns.map((pattern) => {
-            const isSelected = myShift?.shift_pattern_id === pattern.id;
+            const isSelected = myShift?.shiftPatternId === pattern.id;
             return (
               <button
                 key={pattern.id}
@@ -106,10 +106,10 @@ export default function ShiftSelectPanel({
                 />
                 <span style={{ flex: 1, fontWeight: 600, fontSize: 15 }}>{pattern.name}</span>
                 <span style={{ fontSize: 12, color: '#6b7280' }}>
-                  {pattern.is_day_off
+                  {pattern.isDayOff
                     ? '休日'
-                    : pattern.start_time && pattern.end_time
-                    ? `${pattern.start_time}〜${pattern.end_time}`
+                    : pattern.startTime && pattern.endTime
+                    ? `${pattern.startTime}〜${pattern.endTime}`
                     : ''}
                 </span>
               </button>

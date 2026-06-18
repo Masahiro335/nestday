@@ -33,7 +33,7 @@ export default function OnboardingForm() {
         <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>
           「{group.name}」を作成しました！
         </h2>
-        <InviteLinkCard inviteToken={group.invite_token} />
+        <InviteLinkCard inviteToken={group.inviteToken} />
       </div>
     );
   }

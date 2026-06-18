@@ -6,11 +6,11 @@ function fetcher<T>(url: string) {
   return api.get<T>(url).then((res) => res.data);
 }
 
-export function useShifts(month: string) {
-  const { data, error, isLoading, mutate } = useSWR<Shift[]>(
-    `/shifts?month=${month}`,
-    fetcher<Shift[]>,
-  );
+export function useShifts(month: string, groupId?: string | null) {
+  const key = groupId
+    ? `/shifts?month=${month}&groupId=${groupId}`
+    : `/shifts?month=${month}`;
+  const { data, error, isLoading, mutate } = useSWR<Shift[]>(key, fetcher<Shift[]>);
   return { shifts: data ?? [], isLoading, error, mutate };
 }
 
@@ -23,7 +23,7 @@ export function useShiftPatterns() {
 }
 
 export async function assignShift(date: string, shiftPatternId: string) {
-  await api.put(`/shifts/${date}`, { shift_pattern_id: shiftPatternId });
+  await api.put(`/shifts/${date}`, { shiftPatternId });
 }
 
 export async function removeShift(date: string) {

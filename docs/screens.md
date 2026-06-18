@@ -16,6 +16,7 @@
 | 10  | シフトパターン新規作成 | `/work/patterns/new`  | 必要 | 所属済み             |
 | 11  | シフトパターン編集     | `/work/patterns/[id]` | 必要 | 所属済み・本人のみ   |
 | 12  | 設定                   | `/settings`           | 必要 | 不問                 |
+| 13  | グループ作成           | `/groups/new`         | 必要 | 不問                 |
 
 ---
 
@@ -124,13 +125,11 @@ apps/web/src/
     │   └── ShiftPatternForm.tsx
     ├── group/                       # グループ関連
     │   ├── OnboardingForm.tsx
-    │   ├── InviteLinkCard.tsx
-    │   └── MemberList.tsx
+    │   └── InviteLinkCard.tsx
     └── ui/                          # 共通UIコンポーネント
         ├── FAB.tsx
         ├── BottomNav.tsx
-        ├── Drawer.tsx
-        ├── Toggle.tsx
+        ├── GroupSheet.tsx
         └── ColorPicker.tsx
 ```
 

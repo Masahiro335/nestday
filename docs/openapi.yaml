@@ -362,12 +362,12 @@ paths:
             type: string
             format: 'YYYY-MM'
             example: '2026-06'
-        - name: calendar_id
+        - name: groupId
           in: query
           schema:
             type: string
             format: uuid
-            description: Optional - filter by specific calendar
+          description: Optional - filter by specific group
       responses:
         '200':
           description: List of events for the month
@@ -400,7 +400,7 @@ paths:
             schema:
               type: object
               properties:
-                calendar_id:
+                calendarId:
                   type: string
                   format: uuid
                   description: The calendar to add the event to. The event's groupId is automatically set to this calendar's groupId.
@@ -414,20 +414,20 @@ paths:
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
-                start_at:
+                startAt:
                   type: string
                   format: date-time
-                end_at:
+                endAt:
                   type: string
                   format: date-time
-                is_all_day:
+                isAllDay:
                   type: boolean
                   default: false
               required:
-                - calendar_id
+                - calendarId
                 - title
-                - start_at
-                - end_at
+                - startAt
+                - endAt
       responses:
         '201':
           description: Event created successfully
@@ -502,13 +502,13 @@ paths:
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
-                start_at:
+                startAt:
                   type: string
                   format: date-time
-                end_at:
+                endAt:
                   type: string
                   format: date-time
-                is_all_day:
+                isAllDay:
                   type: boolean
       responses:
         '200':
@@ -560,7 +560,7 @@ paths:
         - bearerAuth: []
       responses:
         '200':
-          description: List of shift patterns sorted by sort_order
+          description: List of shift patterns sorted by sortOrder
           content:
             application/json:
               schema:
@@ -590,19 +590,19 @@ paths:
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
-                start_time:
+                startTime:
                   type: string
                   example: '07:05'
-                end_time:
+                endTime:
                   type: string
                   example: '15:50'
-                break_minutes:
+                breakMinutes:
                   type: integer
                   default: 0
-                is_day_off:
+                isDayOff:
                   type: boolean
                   default: false
-                sort_order:
+                sortOrder:
                   type: integer
                   default: 0
               required:
@@ -677,15 +677,15 @@ paths:
                 color:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
-                start_time:
+                startTime:
                   type: string
-                end_time:
+                endTime:
                   type: string
-                break_minutes:
+                breakMinutes:
                   type: integer
-                is_day_off:
+                isDayOff:
                   type: boolean
-                sort_order:
+                sortOrder:
                   type: integer
       responses:
         '200':
@@ -742,6 +742,13 @@ paths:
           schema:
             type: string
             example: '2026-06'
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Optional - filter by specific group
       responses:
         '200':
           description: List of shifts for the month
@@ -780,11 +787,11 @@ paths:
             schema:
               type: object
               properties:
-                shift_pattern_id:
+                shiftPatternId:
                   type: string
                   format: uuid
               required:
-                - shift_pattern_id
+                - shiftPatternId
       responses:
         '200':
           description: Shift assigned
@@ -835,16 +842,19 @@ components:
           format: email
         name:
           type: string
-        avatar_url:
+        avatarUrl:
           type: string
           format: uri
-        created_at:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
         - email
-        - created_at
+        - createdAt
 
     Group:
       type: object
@@ -854,20 +864,23 @@ components:
           format: uuid
         name:
           type: string
-        invite_token:
+        inviteToken:
           type: string
-        owner_id:
+        ownerId:
           type: string
           format: uuid
-        created_at:
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
         - name
-        - invite_token
-        - owner_id
-        - created_at
+        - inviteToken
+        - ownerId
+        - createdAt
 
     GroupWithMembers:
       allOf:
@@ -885,7 +898,7 @@ components:
         id:
           type: string
           format: uuid
-        group_id:
+        groupId:
           type: string
           format: uuid
         name:
@@ -893,23 +906,23 @@ components:
         color:
           type: string
           pattern: '^#[0-9A-Fa-f]{6}$'
-        created_by:
+        createdBy:
           type: string
           format: uuid
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
-        - group_id
+        - groupId
         - name
         - color
-        - created_by
-        - created_at
-        - updated_at
+        - createdBy
+        - createdAt
+        - updatedAt
 
     Event:
       type: object
@@ -917,13 +930,13 @@ components:
         id:
           type: string
           format: uuid
-        group_id:
+        groupId:
           type: string
           format: uuid
-        calendar_id:
+        calendarId:
           type: string
           format: uuid
-        created_by:
+        createdBy:
           type: string
           format: uuid
         title:
@@ -936,31 +949,31 @@ components:
         color:
           type: string
           pattern: '^#[0-9A-Fa-f]{6}$'
-        start_at:
+        startAt:
           type: string
           format: date-time
-        end_at:
+        endAt:
           type: string
           format: date-time
-        is_all_day:
+        isAllDay:
           type: boolean
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
-        - group_id
-        - calendar_id
-        - created_by
+        - groupId
+        - calendarId
+        - createdBy
         - title
-        - start_at
-        - end_at
-        - is_all_day
-        - created_at
-        - updated_at
+        - startAt
+        - endAt
+        - isAllDay
+        - createdAt
+        - updatedAt
 
     GroupPreview:
       type: object
@@ -970,12 +983,12 @@ components:
           format: uuid
         name:
           type: string
-        member_count:
+        memberCount:
           type: integer
       required:
         - id
         - name
-        - member_count
+        - memberCount
 
     ShiftPattern:
       type: object
@@ -983,7 +996,7 @@ components:
         id:
           type: string
           format: uuid
-        user_id:
+        userId:
           type: string
           format: uuid
         name:
@@ -991,35 +1004,35 @@ components:
         color:
           type: string
           pattern: '^#[0-9A-Fa-f]{6}$'
-        start_time:
+        startTime:
           type: string
           example: '07:05'
           nullable: true
-        end_time:
+        endTime:
           type: string
           example: '15:50'
           nullable: true
-        break_minutes:
+        breakMinutes:
           type: integer
-        is_day_off:
+        isDayOff:
           type: boolean
-        sort_order:
+        sortOrder:
           type: integer
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
-        - user_id
+        - userId
         - name
         - color
-        - is_day_off
-        - sort_order
-        - created_at
-        - updated_at
+        - isDayOff
+        - sortOrder
+        - createdAt
+        - updatedAt
 
     Shift:
       type: object
@@ -1027,34 +1040,34 @@ components:
         id:
           type: string
           format: uuid
-        user_id:
+        userId:
           type: string
           format: uuid
-        group_id:
+        groupId:
           type: string
           format: uuid
-        shift_pattern_id:
+        shiftPatternId:
           type: string
           format: uuid
-        shift_pattern:
+        shiftPattern:
           $ref: '#/components/schemas/ShiftPattern'
         date:
           type: string
           format: date
-        created_at:
+        createdAt:
           type: string
           format: date-time
-        updated_at:
+        updatedAt:
           type: string
           format: date-time
       required:
         - id
-        - user_id
-        - group_id
-        - shift_pattern_id
+        - userId
+        - groupId
+        - shiftPatternId
         - date
-        - created_at
-        - updated_at
+        - createdAt
+        - updatedAt
 
   securitySchemes:
     bearerAuth:

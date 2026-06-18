@@ -46,7 +46,7 @@ export default function ShiftCell({ date, shifts, isCurrentMonth, isToday, onCli
           <div
             key={shift.id}
             style={{
-              background: shift.shift_pattern?.color ?? '#6b7280',
+              background: shift.shiftPattern?.color ?? '#6b7280',
               color: '#fff',
               fontSize: 9,
               padding: '1px 3px',
@@ -56,7 +56,7 @@ export default function ShiftCell({ date, shifts, isCurrentMonth, isToday, onCli
               textOverflow: 'ellipsis',
             }}
           >
-            {shift.shift_pattern?.name ?? ''}
+            {shift.shiftPattern?.name ?? ''}
           </div>
         ))}
         {shifts.length > 3 && (
