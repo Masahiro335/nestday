@@ -89,6 +89,26 @@ paths:
           description: Server error
 
   /groups:
+    get:
+      summary: Get all groups the current user belongs to
+      tags:
+        - Groups
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of groups with members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GroupWithMembers'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+
     post:
       summary: Create a new group
       tags:
@@ -112,7 +132,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Group'
+                $ref: '#/components/schemas/GroupWithMembers'
         '401':
           description: Unauthorized
         '500':
@@ -196,11 +216,19 @@ paths:
 
   /calendars:
     get:
-      summary: Get all calendars in user's groups (all groups the user belongs to)
+      summary: Get calendars in user's groups (optionally filtered by groupId)
       tags:
         - Calendars
       security:
         - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter calendars by specific group (must be a group the user belongs to)
       responses:
         '200':
           description: List of calendars
@@ -228,6 +256,10 @@ paths:
             schema:
               type: object
               properties:
+                groupId:
+                  type: string
+                  format: uuid
+                  description: Target group ID (must be a group the user belongs to). If omitted, uses the user's first group.
                 name:
                   type: string
                 color:
@@ -245,6 +277,8 @@ paths:
                 $ref: '#/components/schemas/Calendar'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - not a member of the specified group
         '400':
           description: Invalid input
         '500':
@@ -351,7 +385,10 @@ paths:
           description: Server error
 
     post:
-      summary: Create a new event
+      summary: Create a new event (groupId is derived from the calendar)
+      description: |
+        イベントの `groupId` はリクエストで指定せず、`calendarId` からカレンダーを逆引きして自動設定される。
+        フロントエンドは選択中のグループに属するカレンダーの `calendarId` を送ることで、正しいグループにイベントが作成される。
       tags:
         - Events
       security:
@@ -366,6 +403,7 @@ paths:
                 calendar_id:
                   type: string
                   format: uuid
+                  description: The calendar to add the event to. The event's groupId is automatically set to this calendar's groupId.
                 title:
                   type: string
                 memo:
@@ -400,7 +438,9 @@ paths:
         '401':
           description: Unauthorized
         '400':
-          description: Invalid input
+          description: Invalid input or calendar not found
+        '403':
+          description: Forbidden - not a member of the calendar's group
         '500':
           description: Server error
 

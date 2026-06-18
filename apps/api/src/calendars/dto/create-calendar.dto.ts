@@ -1,7 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Matches, MinLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsString, IsUUID, Matches, MinLength } from 'class-validator';
 
 export class CreateCalendarDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  groupId?: string;
+
   @ApiProperty({ example: 'Work' })
   @IsString()
   @MinLength(1)

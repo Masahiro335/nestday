@@ -3,22 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import api from '@/lib/api';
 import { createClient } from '@/lib/supabase';
+import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
+import GroupSheet from '@/components/ui/GroupSheet';
 
 interface Member {
   id: string;
   email: string;
   name?: string;
   avatarUrl?: string;
-}
-
-interface ApiGroup {
-  id: string;
-  name: string;
-  inviteToken: string;
-  ownerId: string;
-  members: Member[];
 }
 
 function Avatar({ member }: { member: Member }) {
@@ -49,32 +42,40 @@ function Avatar({ member }: { member: Member }) {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [group, setGroup] = useState<ApiGroup | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [showGroupSheet, setShowGroupSheet] = useState(false);
+
+  const { groups, isLoading } = useGroups();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
-  const fetchGroup = useCallback(async () => {
-    try {
-      const [{ data }, { data: { session } }] = await Promise.all([
-        api.get<ApiGroup>('/groups/me'),
-        createClient().auth.getSession(),
-      ]);
-      setGroup(data);
+  useEffect(() => {
+    createClient().auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user.id);
-    } catch {
-      // グループ未所属
-    } finally {
-      setLoading(false);
-    }
+    });
+    const stored = getStoredGroupId();
+    if (stored) setSelectedGroupId(stored);
   }, []);
 
   useEffect(() => {
-    fetchGroup();
-  }, [fetchGroup]);
+    if (groups.length === 0) return;
+    const stored = getStoredGroupId();
+    const valid = stored && groups.some((g) => g.id === stored);
+    if (!valid) {
+      setSelectedGroupId(groups[0].id);
+      setStoredGroupId(groups[0].id);
+    } else if (!selectedGroupId && stored) {
+      setSelectedGroupId(stored);
+    }
+  }, [groups]);
+
+  function handleSelectGroup(groupId: string) {
+    setSelectedGroupId(groupId);
+    setStoredGroupId(groupId);
+  }
 
   async function handleCopy() {
     if (!group) return;
@@ -91,7 +92,9 @@ export default function SettingsPage() {
     router.push('/login');
   }
 
-  if (loading) {
+  const group = groups.find((g) => g.id === selectedGroupId) ?? null;
+
+  if (isLoading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '50vh', color: '#9ca3af' }}>
         読み込み中...
@@ -114,19 +117,30 @@ export default function SettingsPage() {
           <section style={{ margin: '16px 0 0' }}>
             <p style={sectionLabel}>グループ</p>
             <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button
+                type="button"
+                onClick={groups.length > 1 ? () => setShowGroupSheet(true) : undefined}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 12,
+                  width: '100%', background: 'none', textAlign: 'left',
+                  cursor: groups.length > 1 ? 'pointer' : 'default',
+                }}
+              >
                 <div style={{
                   width: 44, height: 44, borderRadius: 12, background: '#3b82f6',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 20, color: '#fff', fontWeight: 700,
+                  fontSize: 20, color: '#fff', fontWeight: 700, flexShrink: 0,
                 }}>
                   {group.name.charAt(0)}
                 </div>
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 17, fontWeight: 700 }}>{group.name}</p>
                   <p style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>{group.members.length}人のメンバー</p>
                 </div>
-              </div>
+                {groups.length > 1 && (
+                  <span style={{ fontSize: 12, color: '#6b7280', flexShrink: 0 }}>切替 ▼</span>
+                )}
+              </button>
             </div>
           </section>
 
@@ -248,6 +262,14 @@ export default function SettingsPage() {
           </button>
         </div>
       </section>
+
+      <GroupSheet
+        isOpen={showGroupSheet}
+        groups={groups}
+        selectedGroupId={selectedGroupId}
+        onSelect={handleSelectGroup}
+        onClose={() => setShowGroupSheet(false)}
+      />
     </div>
   );
 }

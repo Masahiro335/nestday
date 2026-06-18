@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -46,6 +46,7 @@ export class EventsService {
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupIds = await this.getGroupIds(currentUser.id);
+    const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
 
     const [year, month] = query.month.split('-').map(Number);
     const monthStart = new Date(year, month - 1, 1);
@@ -53,7 +54,7 @@ export class EventsService {
 
     return this.prisma.event.findMany({
       where: {
-        groupId: { in: groupIds },
+        groupId: { in: targetGroupIds },
         startAt: { lte: monthEnd },
         endAt: { gte: monthStart },
       },
@@ -62,10 +63,17 @@ export class EventsService {
   }
 
   async create(dto: CreateEventDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const calendar = await this.prisma.calendar.findUnique({ where: { id: dto.calendarId } });
+    if (!calendar) throw new BadRequestException('Calendar not found');
+
+    const groupIds = await this.getGroupIds(currentUser.id);
+    if (!groupIds.includes(calendar.groupId)) {
+      throw new ForbiddenException('Not a member of this group');
+    }
+
     return this.prisma.event.create({
       data: {
-        groupId,
+        groupId: calendar.groupId,
         calendarId: dto.calendarId,
         createdBy: currentUser.id,
         title: dto.title,

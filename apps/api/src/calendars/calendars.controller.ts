@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -26,8 +27,8 @@ export class CalendarsController {
 
   @Get()
   @ApiOperation({ summary: 'List all calendars in my group' })
-  findAll(@CurrentUser() user: User) {
-    return this.calendarsService.findAll(user);
+  findAll(@CurrentUser() user: User, @Query('groupId') groupId?: string) {
+    return this.calendarsService.findAll(user, groupId);
   }
 
   @Post()

@@ -27,11 +27,12 @@ interface ApiCalendar {
 
 interface EventFormProps {
   eventId?: string;
+  groupId?: string;
 }
 
 const DEFAULT_COLOR = '#3b82f6';
 
-export default function EventForm({ eventId }: EventFormProps) {
+export default function EventForm({ eventId, groupId }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
 
@@ -61,11 +62,13 @@ export default function EventForm({ eventId }: EventFormProps) {
     async function init() {
       try {
         // カレンダー一覧取得。なければ「プライベート」を自動作成
-        let { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
+        const calendarUrl = groupId ? `/calendars?groupId=${groupId}` : '/calendars';
+        let { data: calendars } = await api.get<ApiCalendar[]>(calendarUrl);
         if (calendars.length === 0) {
           const { data: created } = await api.post<ApiCalendar>('/calendars', {
             name: 'プライベート',
             color: '#3b82f6',
+            ...(groupId ? { groupId } : {}),
           });
           calendars = [created];
         }
