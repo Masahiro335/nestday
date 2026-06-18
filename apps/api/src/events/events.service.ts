@@ -19,13 +19,9 @@ export class EventsService {
     return membership.groupId;
   }
 
-  async findOne(id: string, currentUser: User) {
+  async findOne(id: string) {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Event not found');
-
-    const groupId = await this.getGroupId(currentUser.id);
-    if (event.groupId !== groupId) throw new ForbiddenException('Access denied');
-
     return event;
   }
 
