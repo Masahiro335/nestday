@@ -9,6 +9,7 @@ import { GroupsModule } from './groups/groups.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { EventsModule } from './events/events.module';
 import { ShiftsModule } from './shifts/shifts.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ShiftsModule } from './shifts/shifts.module';
     CalendarsModule,
     EventsModule,
     ShiftsModule,
+    UsersModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

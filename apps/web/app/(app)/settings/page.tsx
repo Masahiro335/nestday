@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
 import GroupSheet from '@/components/ui/GroupSheet';
+import MemberDetailModal from '@/components/settings/MemberDetailModal';
 
 interface Member {
   id: string;
@@ -47,8 +48,9 @@ export default function SettingsPage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showGroupSheet, setShowGroupSheet] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  const { groups, isLoading } = useGroups();
+  const { groups, isLoading, mutate } = useGroups();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
@@ -182,11 +184,14 @@ export default function SettingsPage() {
                 const isOwner = member.id === group.ownerId;
                 const isMe = member.id === currentUserId;
                 return (
-                  <div
+                  <button
                     key={member.id}
+                    type="button"
+                    onClick={() => setSelectedMember(member)}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '14px 16px',
+                      padding: '14px 16px', width: '100%',
+                      background: 'none', textAlign: 'left', cursor: 'pointer',
                       borderBottom: i < group.members.length - 1 ? '1px solid #f3f4f6' : 'none',
                     }}
                   >
@@ -211,7 +216,8 @@ export default function SettingsPage() {
                         {member.email}
                       </p>
                     </div>
-                  </div>
+                    <span style={{ fontSize: 14, color: '#d1d5db', flexShrink: 0 }}>›</span>
+                  </button>
                 );
               })}
             </div>
@@ -269,6 +275,18 @@ export default function SettingsPage() {
         selectedGroupId={selectedGroupId}
         onSelect={handleSelectGroup}
         onClose={() => setShowGroupSheet(false)}
+      />
+
+      <MemberDetailModal
+        isOpen={selectedMember !== null}
+        member={selectedMember}
+        isOwner={selectedMember?.id === group?.ownerId}
+        isMe={selectedMember?.id === currentUserId}
+        isCurrentUserOwner={currentUserId === group?.ownerId}
+        groupId={group?.id ?? null}
+        onClose={() => setSelectedMember(null)}
+        onMemoSaved={() => mutate()}
+        onMemberRemoved={() => { setSelectedMember(null); mutate(); }}
       />
     </div>
   );

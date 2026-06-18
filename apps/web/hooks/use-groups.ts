@@ -6,7 +6,7 @@ export interface ApiGroupSummary {
   name: string;
   inviteToken: string;
   ownerId: string;
-  members: Array<{ id: string; name?: string; email: string }>;
+  members: Array<{ id: string; name?: string; email: string; memo?: string | null }>;
 }
 
 function fetcher(url: string) {

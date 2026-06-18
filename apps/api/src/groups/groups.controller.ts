@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -41,5 +41,16 @@ export class GroupsController {
   @ApiOperation({ summary: 'Join a group by invite token' })
   joinGroup(@Param('token') token: string, @CurrentUser() user: User) {
     return this.groupsService.joinGroup(token, user);
+  }
+
+  @Delete(':groupId/members/:userId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Remove a member from a group (owner only)' })
+  removeMember(
+    @Param('groupId') groupId: string,
+    @Param('userId') userId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.groupsService.removeMember(groupId, userId, user);
   }
 }
