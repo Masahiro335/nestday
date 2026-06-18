@@ -3,6 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+const tabs = [
+  { href: '/', label: 'プライベート', icon: '🏠', match: (p: string) => p === '/' },
+  { href: '/work', label: '仕事用', icon: '💼', match: (p: string) => p.startsWith('/work') },
+  { href: '/settings', label: '設定', icon: '⚙️', match: (p: string) => p.startsWith('/settings') },
+];
+
 export default function BottomNav() {
   const pathname = usePathname();
 
@@ -17,40 +23,32 @@ export default function BottomNav() {
         display: 'flex',
         borderTop: '1px solid var(--color-border)',
         background: 'var(--color-bg)',
+        zIndex: 30,
       }}
     >
-      <Link
-        href="/"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 2,
-          fontSize: 11,
-          color: pathname === '/' ? 'var(--color-primary)' : 'var(--color-muted)',
-        }}
-      >
-        <span style={{ fontSize: 20 }}>🏠</span>
-        プライベート
-      </Link>
-      <Link
-        href="/work"
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 2,
-          fontSize: 11,
-          color: pathname.startsWith('/work') ? 'var(--color-primary)' : 'var(--color-muted)',
-        }}
-      >
-        <span style={{ fontSize: 20 }}>💼</span>
-        仕事用
-      </Link>
+      {tabs.map(({ href, label, icon, match }) => {
+        const active = match(pathname);
+        return (
+          <Link
+            key={href}
+            href={href}
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+              fontSize: 11,
+              color: active ? 'var(--color-primary)' : 'var(--color-muted)',
+              textDecoration: 'none',
+            }}
+          >
+            <span style={{ fontSize: 20 }}>{icon}</span>
+            {label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
