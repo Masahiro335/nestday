@@ -5,6 +5,12 @@ import { usePathname } from 'next/navigation';
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
 
+interface Member {
+  id: string;
+  name?: string;
+  email: string;
+}
+
 interface CalendarHeaderProps {
   year: number;
   month: number;
@@ -13,6 +19,10 @@ interface CalendarHeaderProps {
   groupName?: string;
   hasMultipleGroups?: boolean;
   onGroupTap?: () => void;
+  members?: Member[];
+  currentUserId?: string;
+  selectedMemberId?: string;
+  onMemberChange?: (memberId: string) => void;
 }
 
 export default function CalendarHeader({
@@ -23,6 +33,10 @@ export default function CalendarHeader({
   groupName,
   hasMultipleGroups,
   onGroupTap,
+  members,
+  currentUserId,
+  selectedMemberId = '',
+  onMemberChange,
 }: CalendarHeaderProps) {
   const pathname = usePathname();
   const isPrivate = pathname === '/';
@@ -83,6 +97,41 @@ export default function CalendarHeader({
           <button type="button" onClick={onNext} style={{ fontSize: 18, padding: '0 6px', color: '#374151' }}>›</button>
         </div>
       </div>
+
+      {/* メンバー絞り込み */}
+      {members && members.length > 0 && onMemberChange && (
+        <div style={{ padding: '4px 0 6px' }}>
+          <select
+            value={selectedMemberId}
+            onChange={(e) => onMemberChange(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '6px 10px',
+              fontSize: 13,
+              border: '1px solid #e5e7eb',
+              borderRadius: 8,
+              background: '#fff',
+              color: '#374151',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 10px center',
+              paddingRight: 28,
+            }}
+          >
+            <option value="">全員</option>
+            {members.map((m) => {
+              const displayName = m.name ?? m.email.split('@')[0];
+              const isMe = m.id === currentUserId;
+              return (
+                <option key={m.id} value={m.id}>
+                  {displayName}{isMe ? '（自分）' : ''}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+      )}
 
       {/* 曜日ヘッダー */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', borderTop: '1px solid #e5e7eb', borderLeft: '1px solid #e5e7eb' }}>

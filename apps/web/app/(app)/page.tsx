@@ -32,6 +32,7 @@ export default function PrivateCalendarPage() {
   const [membersMap, setMembersMap] = useState<Record<string, string>>({});
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showGroupSheet, setShowGroupSheet] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState('');
 
   const { groups } = useGroups();
   const monthStr = toMonthStr(year, month);
@@ -74,6 +75,7 @@ export default function PrivateCalendarPage() {
   function handleSelectGroup(groupId: string) {
     setSelectedGroupId(groupId);
     setStoredGroupId(groupId);
+    setSelectedMemberId('');
   }
 
   function handlePrev() {
@@ -86,14 +88,19 @@ export default function PrivateCalendarPage() {
     else setMonth((m) => m + 1);
   }
 
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+  const members = selectedGroup?.members ?? [];
+
+  const filteredEvents = selectedMemberId
+    ? events.filter((ev) => ev.createdBy === selectedMemberId)
+    : events;
+
   const selectedEvents = selectedDate
-    ? events.filter((ev) => {
+    ? filteredEvents.filter((ev) => {
         const ds = selectedDate;
         return ev.startAt.slice(0, 10) <= ds && ds <= ev.endAt.slice(0, 10);
       })
     : [];
-
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -105,11 +112,15 @@ export default function PrivateCalendarPage() {
         groupName={selectedGroup?.name}
         hasMultipleGroups={groups.length > 1}
         onGroupTap={() => setShowGroupSheet(true)}
+        members={members}
+        currentUserId={currentUserId}
+        selectedMemberId={selectedMemberId}
+        onMemberChange={setSelectedMemberId}
       />
       <CalendarGrid
         year={year}
         month={month}
-        events={events}
+        events={filteredEvents}
         onSelectDate={setSelectedDate}
       />
       <DayDrawer
