@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import type { ApiGroupSummary } from '@/hooks/use-groups';
 
 interface GroupSheetProps {
@@ -93,18 +92,6 @@ export default function GroupSheet({
             );
           })}
 
-          <Link
-            href="/groups/new"
-            onClick={onClose}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              padding: '14px', borderRadius: 12, border: '1px dashed #93c5fd',
-              color: '#3b82f6', fontSize: 15, fontWeight: 600, marginTop: 4,
-              textDecoration: 'none',
-            }}
-          >
-            ＋ 新しいグループを作成
-          </Link>
         </div>
       </div>
     </>

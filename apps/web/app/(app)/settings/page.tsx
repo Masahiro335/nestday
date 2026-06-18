@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
@@ -42,10 +41,8 @@ function Avatar({ member }: { member: Member }) {
 }
 
 export default function SettingsPage() {
-  const router = useRouter();
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [copied, setCopied] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showGroupSheet, setShowGroupSheet] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -84,14 +81,6 @@ export default function SettingsPage() {
     await navigator.clipboard.writeText(`${appUrl}/join/${group.inviteToken}`);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
-
-  async function handleLogout() {
-    if (!confirm('ログアウトしますか？')) return;
-    setLoggingOut(true);
-    await createClient().auth.signOut();
-    document.cookie = 'has_group=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    router.push('/login');
   }
 
   const group = groups.find((g) => g.id === selectedGroupId) ?? null;
@@ -246,26 +235,6 @@ export default function SettingsPage() {
           >
             ＋ グループを作成する
           </Link>
-        </div>
-      </section>
-
-      {/* ログアウト */}
-      <section style={{ margin: '16px 0 0' }}>
-        <div style={{ marginInline: 16 }}>
-          <button
-            type="button"
-            onClick={handleLogout}
-            disabled={loggingOut}
-            style={{
-              width: '100%', padding: '14px', borderRadius: 12,
-              background: '#fff', color: '#ef4444',
-              fontSize: 16, fontWeight: 600,
-              border: '1px solid #fecaca',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-            }}
-          >
-            {loggingOut ? 'ログアウト中...' : 'ログアウト'}
-          </button>
         </div>
       </section>
 
