@@ -14,6 +14,7 @@ export default function ColorPicker({ value, onChange, colors = EVENT_COLORS }: 
       {colors.map((color) => (
         <button
           key={color}
+          type="button"
           onClick={() => onChange(color)}
           aria-label={color}
           style={{

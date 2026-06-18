@@ -4,7 +4,26 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import ColorPicker from '@/components/ui/ColorPicker';
 import api from '@/lib/api';
-import type { Event } from '@calendar-share/types';
+import { createClient } from '@/lib/supabase';
+
+interface ApiEvent {
+  id: string;
+  calendarId: string;
+  createdBy: string;
+  title: string;
+  memo?: string;
+  location?: string;
+  color?: string;
+  startAt: string;
+  endAt: string;
+  isAllDay: boolean;
+}
+
+interface ApiCalendar {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface EventFormProps {
   eventId?: string;
@@ -16,6 +35,7 @@ export default function EventForm({ eventId }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
 
+  const [calendarId, setCalendarId] = useState('');
   const [title, setTitle] = useState('');
   const [startAt, setStartAt] = useState(() => {
     const now = new Date();
@@ -34,39 +54,68 @@ export default function EventForm({ eventId }: EventFormProps) {
   const [showDetail, setShowDetail] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [initializing, setInitializing] = useState(isEdit);
+  const [initializing, setInitializing] = useState(true);
+  const [isOwner, setIsOwner] = useState(true);
 
   useEffect(() => {
-    if (!eventId) return;
-    api
-      .get<Event>(`/events/${eventId}`)
-      .then(({ data }) => {
-        setTitle(data.title);
-        setStartAt(data.start_at.slice(0, 16));
-        setEndAt(data.end_at.slice(0, 16));
-        setIsAllDay(data.is_all_day);
-        setColor(data.color ?? DEFAULT_COLOR);
-        setLocation(data.location ?? '');
-        setMemo(data.memo ?? '');
-        if (data.location || data.memo) setShowDetail(true);
-      })
-      .catch(() => router.replace('/'))
-      .finally(() => setInitializing(false));
+    async function init() {
+      try {
+        // カレンダー一覧取得。なければ「プライベート」を自動作成
+        let { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
+        if (calendars.length === 0) {
+          const { data: created } = await api.post<ApiCalendar>('/calendars', {
+            name: 'プライベート',
+            color: '#3b82f6',
+          });
+          calendars = [created];
+        }
+        setCalendarId(calendars[0].id);
+
+        if (eventId) {
+          const [{ data }, { data: { session } }] = await Promise.all([
+            api.get<ApiEvent>(`/events/${eventId}`),
+            createClient().auth.getSession(),
+          ]);
+          setTitle(data.title);
+          setStartAt(data.startAt.slice(0, 16));
+          setEndAt(data.endAt.slice(0, 16));
+          setIsAllDay(data.isAllDay);
+          setColor(data.color ?? DEFAULT_COLOR);
+          setLocation(data.location ?? '');
+          setMemo(data.memo ?? '');
+          if (data.location || data.memo) setShowDetail(true);
+          setCalendarId(data.calendarId);
+          setIsOwner(!!session && data.createdBy === session.user.id);
+        }
+      } catch {
+        if (eventId) router.replace('/');
+      } finally {
+        setInitializing(false);
+      }
+    }
+    init();
   }, [eventId, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     const payload = {
+      calendarId,
       title,
-      start_at: isAllDay ? startAt.slice(0, 10) + 'T00:00:00Z' : new Date(startAt).toISOString(),
-      end_at: isAllDay ? endAt.slice(0, 10) + 'T23:59:59Z' : new Date(endAt).toISOString(),
-      is_all_day: isAllDay,
+      startAt: isAllDay
+        ? startAt.slice(0, 10) + 'T00:00:00.000Z'
+        : new Date(startAt).toISOString(),
+      endAt: isAllDay
+        ? endAt.slice(0, 10) + 'T23:59:59.000Z'
+        : new Date(endAt).toISOString(),
+      isAllDay,
       color,
       location: location || undefined,
       memo: memo || undefined,
     };
+
     try {
       if (isEdit) {
         await api.patch(`/events/${eventId}`, payload);
@@ -97,19 +146,28 @@ export default function EventForm({ eventId }: EventFormProps) {
     return <div style={{ padding: 24, color: '#6b7280' }}>読み込み中...</div>;
   }
 
+  const readOnly = isEdit && !isOwner;
+
   return (
     <div style={{ maxWidth: 480, margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-        <button onClick={() => router.back()} style={{ fontSize: 22, color: '#6b7280' }}>✕</button>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>{isEdit ? '予定編集' : '予定作成'}</span>
-        <button
-          onClick={handleSubmit as unknown as React.MouseEventHandler}
-          disabled={loading || !title}
-          style={{ color: loading || !title ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
-        >
-          保存
-        </button>
+        <button type="button" onClick={() => router.back()} style={{ fontSize: 22, color: '#6b7280' }}>✕</button>
+        <span style={{ fontWeight: 700, fontSize: 16 }}>
+          {readOnly ? '予定詳細' : isEdit ? '予定編集' : '予定作成'}
+        </span>
+        {!readOnly && (
+          <button
+            onClick={handleSubmit as unknown as React.MouseEventHandler}
+            disabled={loading || !title}
+            style={{ color: loading || !title ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}
+          >
+            保存
+          </button>
+        )}
+        {readOnly && (
+          <span style={{ fontSize: 13, color: '#9ca3af' }}>閲覧のみ</span>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} style={{ padding: '0 16px' }}>
@@ -118,9 +176,20 @@ export default function EventForm({ eventId }: EventFormProps) {
           type="text"
           placeholder="予定名"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          style={{ width: '100%', fontSize: 22, fontWeight: 600, padding: '16px 0', border: 'none', borderBottom: '1px solid #e5e7eb', outline: 'none' }}
+          onChange={(e) => !readOnly && setTitle(e.target.value)}
+          readOnly={readOnly}
+          required={!readOnly}
+          style={{
+            width: '100%',
+            fontSize: 22,
+            fontWeight: 600,
+            padding: '16px 0',
+            border: 'none',
+            borderBottom: '1px solid #e5e7eb',
+            outline: 'none',
+            background: 'transparent',
+            color: readOnly ? '#374151' : '#1a1a1a',
+          }}
         />
 
         {/* 日時 */}
@@ -129,19 +198,26 @@ export default function EventForm({ eventId }: EventFormProps) {
             <input
               type={isAllDay ? 'date' : 'datetime-local'}
               value={isAllDay ? startAt.slice(0, 10) : startAt}
-              onChange={(e) => setStartAt(e.target.value)}
+              onChange={(e) => !readOnly && setStartAt(e.target.value)}
+              readOnly={readOnly}
               style={inputStyle}
             />
             <span style={{ color: '#6b7280' }}>→</span>
             <input
               type={isAllDay ? 'date' : 'datetime-local'}
               value={isAllDay ? endAt.slice(0, 10) : endAt}
-              onChange={(e) => setEndAt(e.target.value)}
+              onChange={(e) => !readOnly && setEndAt(e.target.value)}
+              readOnly={readOnly}
               style={inputStyle}
             />
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#6b7280' }}>
-            <input type="checkbox" checked={isAllDay} onChange={(e) => setIsAllDay(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={isAllDay}
+              onChange={(e) => !readOnly && setIsAllDay(e.target.checked)}
+              disabled={readOnly}
+            />
             終日
           </label>
         </div>
@@ -149,43 +225,55 @@ export default function EventForm({ eventId }: EventFormProps) {
         {/* カラー */}
         <div style={{ padding: '16px 0', borderBottom: '1px solid #e5e7eb' }}>
           <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>カラー</p>
-          <ColorPicker value={color} onChange={setColor} />
+          {readOnly ? (
+            <span style={{ display: 'inline-block', width: 24, height: 24, borderRadius: '50%', background: color }} />
+          ) : (
+            <ColorPicker value={color} onChange={setColor} />
+          )}
         </div>
 
         {/* 詳細 */}
         <div style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb' }}>
-          <button
-            type="button"
-            onClick={() => setShowDetail((v) => !v)}
-            style={{ color: '#3b82f6', fontSize: 14 }}
-          >
-            {showDetail ? '詳細を閉じる' : '詳細を表示'}
-          </button>
-          {showDetail && (
+          {!readOnly && (
+            <button
+              type="button"
+              onClick={() => setShowDetail((v) => !v)}
+              style={{ color: '#3b82f6', fontSize: 14 }}
+            >
+              {showDetail ? '詳細を閉じる' : '詳細を表示'}
+            </button>
+          )}
+          {(showDetail || readOnly) && (location || memo || !readOnly) && (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <input
-                type="text"
-                placeholder="📍 場所（最大200文字）"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                maxLength={200}
-                style={inputStyle}
-              />
-              <textarea
-                placeholder="💬 メモ"
-                value={memo}
-                onChange={(e) => setMemo(e.target.value)}
-                rows={3}
-                style={{ ...inputStyle, resize: 'vertical' }}
-              />
+              {(location || !readOnly) && (
+                <input
+                  type="text"
+                  placeholder="📍 場所（最大200文字）"
+                  value={location}
+                  onChange={(e) => !readOnly && setLocation(e.target.value)}
+                  readOnly={readOnly}
+                  maxLength={200}
+                  style={inputStyle}
+                />
+              )}
+              {(memo || !readOnly) && (
+                <textarea
+                  placeholder="💬 メモ"
+                  value={memo}
+                  onChange={(e) => !readOnly && setMemo(e.target.value)}
+                  readOnly={readOnly}
+                  rows={3}
+                  style={{ ...inputStyle, resize: 'vertical' }}
+                />
+              )}
             </div>
           )}
         </div>
 
         {error && <p style={{ color: '#ef4444', fontSize: 14, padding: '12px 0' }}>{error}</p>}
 
-        {/* 削除ボタン（編集モードのみ） */}
-        {isEdit && (
+        {/* 削除ボタン（編集モード・作成者のみ） */}
+        {isEdit && isOwner && (
           <button
             type="button"
             onClick={handleDelete}
@@ -207,4 +295,5 @@ const inputStyle: React.CSSProperties = {
   fontSize: 14,
   width: '100%',
   outline: 'none',
+  background: 'transparent',
 };

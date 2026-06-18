@@ -1,19 +1,24 @@
 'use client';
 
-import Link from 'next/link';
-import type { Event } from '@calendar-share/types';
+import { useRouter } from 'next/navigation';
+import type { ApiEvent } from '@/hooks/use-events';
 
 interface DayDrawerProps {
   isOpen: boolean;
   date: string | null;
-  events: Event[];
+  events: ApiEvent[];
   onClose: () => void;
   currentUserId?: string;
 }
 
-function formatTime(ev: Event): string {
-  if (ev.is_all_day) return '終日';
-  return ev.start_at.slice(11, 16);
+function toHHMM(isoStr: string): string {
+  const d = new Date(isoStr);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function formatTime(ev: ApiEvent): string {
+  if (ev.isAllDay) return '終日';
+  return `${toHHMM(ev.startAt)}〜${toHHMM(ev.endAt)}`;
 }
 
 function formatDateLabel(dateStr: string): string {
@@ -23,7 +28,14 @@ function formatDateLabel(dateStr: string): string {
 }
 
 export default function DayDrawer({ isOpen, date, events, onClose, currentUserId }: DayDrawerProps) {
+  const router = useRouter();
+
   if (!isOpen || !date) return null;
+
+  function handleEventClick(ev: ApiEvent) {
+    onClose();
+    router.push(`/events/${ev.id}/edit`);
+  }
 
   return (
     <>
@@ -63,7 +75,7 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px' }}>
           <span style={{ fontSize: 16, fontWeight: 700 }}>{formatDateLabel(date)}</span>
-          <button onClick={onClose} style={{ fontSize: 20, color: '#6b7280' }}>✕</button>
+          <button type="button" onClick={onClose} style={{ fontSize: 20, color: '#6b7280' }}>✕</button>
         </div>
 
         <div style={{ overflowY: 'auto', padding: '0 16px 16px' }}>
@@ -72,40 +84,53 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
               予定なし
             </p>
           ) : (
-            events.map((ev) => (
-              <div
-                key={ev.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: '10px 0',
-                  borderBottom: '1px solid #f3f4f6',
-                }}
-              >
-                <span style={{ color: '#6b7280', fontSize: 13, minWidth: 36 }}>
-                  {formatTime(ev)}
-                </span>
-                <span
+            events.map((ev) => {
+              const isOwner = currentUserId && ev.createdBy === currentUserId;
+              return (
+                <div
+                  key={ev.id}
+                  onClick={() => handleEventClick(ev)}
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: '50%',
-                    background: ev.color ?? '#3b82f6',
-                    flexShrink: 0,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 12,
+                    padding: '12px 0',
+                    borderBottom: '1px solid #f3f4f6',
+                    cursor: 'pointer',
                   }}
-                />
-                <span style={{ flex: 1, fontSize: 15 }}>{ev.title}</span>
-                {currentUserId && ev.created_by === currentUserId && (
-                  <Link
-                    href={`/events/${ev.id}/edit`}
-                    style={{ fontSize: 12, color: '#3b82f6' }}
-                  >
-                    編集
-                  </Link>
-                )}
-              </div>
-            ))
+                >
+                  <span style={{ color: '#6b7280', fontSize: 13, minWidth: 100, paddingTop: 2 }}>
+                    {formatTime(ev)}
+                  </span>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: ev.color ?? '#3b82f6',
+                      flexShrink: 0,
+                      marginTop: 4,
+                    }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 15, fontWeight: 500 }}>{ev.title}</div>
+                    {ev.location && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        📍 {ev.location}
+                      </div>
+                    )}
+                    {ev.memo && (
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        💬 {ev.memo}
+                      </div>
+                    )}
+                  </div>
+                  <span style={{ fontSize: 12, color: isOwner ? '#3b82f6' : '#d1d5db', paddingTop: 2, flexShrink: 0 }}>
+                    {isOwner ? '編集 ›' : '›'}
+                  </span>
+                </div>
+              );
+            })
           )}
         </div>
       </div>

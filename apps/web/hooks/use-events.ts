@@ -1,13 +1,29 @@
 import useSWR from 'swr';
 import api from '@/lib/api';
-import type { Event } from '@calendar-share/types';
+
+// API レスポンスは camelCase（Prisma デフォルト）
+export interface ApiEvent {
+  id: string;
+  groupId: string;
+  calendarId: string;
+  createdBy: string;
+  title: string;
+  memo?: string;
+  location?: string;
+  color?: string;
+  startAt: string;
+  endAt: string;
+  isAllDay: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 function fetcher(url: string) {
-  return api.get<Event[]>(url).then((res) => res.data);
+  return api.get<ApiEvent[]>(url).then((res) => res.data);
 }
 
 export function useEvents(month: string) {
-  const { data, error, isLoading, mutate } = useSWR<Event[]>(
+  const { data, error, isLoading, mutate } = useSWR<ApiEvent[]>(
     `/events?month=${month}`,
     fetcher,
   );

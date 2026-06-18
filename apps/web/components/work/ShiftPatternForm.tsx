@@ -107,7 +107,7 @@ export default function ShiftPatternForm({ patternId }: ShiftPatternFormProps) {
     <div style={{ maxWidth: 480, margin: '0 auto', background: '#fff', minHeight: '100vh' }}>
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-        <button onClick={() => router.push('/work/patterns')} style={{ color: '#3b82f6', fontSize: 15 }}>‹ 戻る</button>
+        <button type="button" onClick={() => router.push('/work/patterns')} style={{ color: '#3b82f6', fontSize: 15 }}>‹ 戻る</button>
         <span style={{ fontWeight: 700, fontSize: 16 }}>{isEdit ? 'パターン編集' : 'パターン作成'}</span>
         <button onClick={handleSubmit as unknown as React.MouseEventHandler} disabled={loading || !name} style={{ color: !name || loading ? '#9ca3af' : '#3b82f6', fontWeight: 700, fontSize: 16 }}>
           保存
