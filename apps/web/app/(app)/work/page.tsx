@@ -22,6 +22,7 @@ export default function WorkCalendarPage() {
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [showGroupSheet, setShowGroupSheet] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState('');
 
   const { groups } = useGroups();
   const monthStr = toMonthStr(year, month);
@@ -49,6 +50,7 @@ export default function WorkCalendarPage() {
   function handleSelectGroup(groupId: string) {
     setSelectedGroupId(groupId);
     setStoredGroupId(groupId);
+    setSelectedMemberId('');
   }
 
   function handlePrev() {
@@ -60,11 +62,16 @@ export default function WorkCalendarPage() {
     else setMonth((m) => m + 1);
   }
 
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
+  const members = selectedGroup?.members ?? [];
+
+  const filteredShifts = selectedMemberId
+    ? shifts.filter((s) => s.userId === selectedMemberId)
+    : shifts;
+
   const myShiftOnDate = selectedDate
     ? shifts.find((s) => s.date === selectedDate && s.userId === currentUserId)
     : undefined;
-
-  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -76,6 +83,10 @@ export default function WorkCalendarPage() {
         groupName={selectedGroup?.name}
         hasMultipleGroups={groups.length > 1}
         onGroupTap={() => setShowGroupSheet(true)}
+        members={members}
+        currentUserId={currentUserId}
+        selectedMemberId={selectedMemberId}
+        onMemberChange={setSelectedMemberId}
       />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 12px' }}>
@@ -90,7 +101,7 @@ export default function WorkCalendarPage() {
       <WorkCalendarGrid
         year={year}
         month={month}
-        shifts={shifts}
+        shifts={filteredShifts}
         onSelectDate={setSelectedDate}
       />
 
