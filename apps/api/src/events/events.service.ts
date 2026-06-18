@@ -9,17 +9,6 @@ import { UpdateEventDto } from './dto/update-event.dto';
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** ユーザーが所属する最初のグループIDを返す（グループ未所属は NotFoundException） */
-  private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findFirst({
-      where: { userId },
-    });
-    if (!membership) {
-      throw new NotFoundException('Group not found');
-    }
-    return membership.groupId;
-  }
-
   /** ユーザーが所属する全グループIDを返す（グループ未所属は NotFoundException） */
   private async getGroupIds(userId: string): Promise<string[]> {
     const memberships = await this.prisma.groupMember.findMany({
