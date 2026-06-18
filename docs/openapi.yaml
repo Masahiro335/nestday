@@ -190,13 +190,13 @@ paths:
         '404':
           description: Invalid invite token
         '409':
-          description: User already in a group
+          description: User already in this group
         '500':
           description: Server error
 
   /calendars:
     get:
-      summary: Get all calendars in user's group
+      summary: Get all calendars in user's groups (all groups the user belongs to)
       tags:
         - Calendars
       security:
@@ -315,7 +315,7 @@ paths:
 
   /events:
     get:
-      summary: Get events for a specific month
+      summary: Get events for a specific month (across all groups the user belongs to)
       tags:
         - Events
       security:
@@ -690,7 +690,7 @@ paths:
 
   /shifts:
     get:
-      summary: Get shifts for all group members in a specific month
+      summary: Get shifts for all group members in a specific month (across all groups the user belongs to)
       tags:
         - Shifts
       security:
