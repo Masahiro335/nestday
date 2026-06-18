@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import api from '@/lib/api';
 import { createClient } from '@/lib/supabase';
 
@@ -208,8 +209,28 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* グループを作成 */}
+      <section style={{ margin: '16px 0 0' }}>
+        <div style={{ marginInline: 16 }}>
+          <Link
+            href="/groups/new"
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              width: '100%', padding: '14px', borderRadius: 12,
+              background: '#fff', color: '#3b82f6',
+              fontSize: 16, fontWeight: 600,
+              border: '1px solid #bfdbfe',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              textDecoration: 'none',
+            }}
+          >
+            ＋ グループを作成する
+          </Link>
+        </div>
+      </section>
+
       {/* ログアウト */}
-      <section style={{ margin: '24px 0 0' }}>
+      <section style={{ margin: '16px 0 0' }}>
         <div style={{ marginInline: 16 }}>
           <button
             type="button"
