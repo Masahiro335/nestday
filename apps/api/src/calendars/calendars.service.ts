@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCalendarDto } from './dto/create-calendar.dto';
@@ -9,7 +9,7 @@ export class CalendarsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findUnique({
+    const membership = await this.prisma.groupMember.findFirst({
       where: { userId },
     });
     if (!membership) {
@@ -18,16 +18,38 @@ export class CalendarsService {
     return membership.groupId;
   }
 
-  async findAll(currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+  private async getGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+    });
+    if (memberships.length === 0) {
+      throw new NotFoundException('Group not found');
+    }
+    return memberships.map((m) => m.groupId);
+  }
+
+  async findAll(currentUser: User, groupId?: string) {
+    const groupIds = await this.getGroupIds(currentUser.id);
+    const targetIds = groupId
+      ? groupIds.filter((id) => id === groupId)
+      : groupIds;
     return this.prisma.calendar.findMany({
-      where: { groupId },
+      where: { groupId: { in: targetIds } },
       orderBy: { createdAt: 'asc' },
     });
   }
 
   async create(dto: CreateCalendarDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    let groupId: string;
+    if (dto.groupId) {
+      const groupIds = await this.getGroupIds(currentUser.id);
+      if (!groupIds.includes(dto.groupId)) {
+        throw new ForbiddenException('Not a member of this group');
+      }
+      groupId = dto.groupId;
+    } else {
+      groupId = await this.getGroupId(currentUser.id);
+    }
     return this.prisma.calendar.create({
       data: {
         groupId,

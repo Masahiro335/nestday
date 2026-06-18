@@ -39,9 +39,9 @@ Table group_members {
     group_id
     user_id
   }
-  
-  // 1 user = 1 group constraint
-  unique (user_id)
+
+  // 1ユーザーは複数グループに所属可能。同一グループへの重複参加は不可
+  unique (group_id, user_id)
 }
 
 Table calendars {

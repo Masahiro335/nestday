@@ -74,7 +74,7 @@ export default function JoinPage() {
           「{preview.name}」に参加しますか？
         </h1>
         <p style={{ fontSize: 14, color: '#6b7280', marginBottom: 24 }}>
-          メンバー数: {preview.member_count}人
+          メンバー数: {preview.memberCount}人
         </p>
 
         {error && (

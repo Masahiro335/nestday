@@ -27,11 +27,12 @@ interface ApiCalendar {
 
 interface EventFormProps {
   eventId?: string;
+  groupId?: string;
 }
 
 const DEFAULT_COLOR = '#3b82f6';
 
-export default function EventForm({ eventId }: EventFormProps) {
+export default function EventForm({ eventId, groupId }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
 
@@ -61,11 +62,13 @@ export default function EventForm({ eventId }: EventFormProps) {
     async function init() {
       try {
         // カレンダー一覧取得。なければ「プライベート」を自動作成
-        let { data: calendars } = await api.get<ApiCalendar[]>('/calendars');
+        const calendarUrl = groupId ? `/calendars?groupId=${groupId}` : '/calendars';
+        let { data: calendars } = await api.get<ApiCalendar[]>(calendarUrl);
         if (calendars.length === 0) {
           const { data: created } = await api.post<ApiCalendar>('/calendars', {
             name: 'プライベート',
             color: '#3b82f6',
+            ...(groupId ? { groupId } : {}),
           });
           calendars = [created];
         }
@@ -101,14 +104,19 @@ export default function EventForm({ eventId }: EventFormProps) {
     setError(null);
     setLoading(true);
 
+    // 終日イベントはローカル日付の 00:00:00 / 23:59:59 をそのまま ISO 文字列化（UTC 変換しない）
+    function localDateToISO(dateStr: string, time: string) {
+      return `${dateStr.slice(0, 10)}T${time}`;
+    }
+
     const payload = {
       calendarId,
       title,
       startAt: isAllDay
-        ? startAt.slice(0, 10) + 'T00:00:00.000Z'
+        ? localDateToISO(startAt, '00:00:00')
         : new Date(startAt).toISOString(),
       endAt: isAllDay
-        ? endAt.slice(0, 10) + 'T23:59:59.000Z'
+        ? localDateToISO(endAt, '23:59:59')
         : new Date(endAt).toISOString(),
       isAllDay,
       color,

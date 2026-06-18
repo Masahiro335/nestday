@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -9,33 +9,41 @@ import { UpdateEventDto } from './dto/update-event.dto';
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findUnique({
+  /** ユーザーが所属する全グループIDを返す（グループ未所属は NotFoundException） */
+  private async getGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
       where: { userId },
     });
-    if (!membership) {
+    if (memberships.length === 0) {
       throw new NotFoundException('Group not found');
     }
-    return membership.groupId;
+    return memberships.map((m) => m.groupId);
   }
 
-  async findOne(id: string) {
+  /** グループ所属チェックのみ（グループ内外は問わない） */
+  private async requireGroupMembership(userId: string): Promise<void> {
+    const count = await this.prisma.groupMember.count({ where: { userId } });
+    if (count === 0) throw new NotFoundException('Group not found');
+  }
+
+  async findOne(id: string, currentUser: User) {
+    await this.requireGroupMembership(currentUser.id);
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Event not found');
     return event;
   }
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const groupIds = await this.getGroupIds(currentUser.id);
+    const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
 
     const [year, month] = query.month.split('-').map(Number);
-    // Filter: start_at <= monthEnd AND end_at >= monthStart
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
 
     return this.prisma.event.findMany({
       where: {
-        groupId,
+        groupId: { in: targetGroupIds },
         startAt: { lte: monthEnd },
         endAt: { gte: monthStart },
       },
@@ -44,10 +52,17 @@ export class EventsService {
   }
 
   async create(dto: CreateEventDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const calendar = await this.prisma.calendar.findUnique({ where: { id: dto.calendarId } });
+    if (!calendar) throw new BadRequestException('Calendar not found');
+
+    const groupIds = await this.getGroupIds(currentUser.id);
+    if (!groupIds.includes(calendar.groupId)) {
+      throw new ForbiddenException('Not a member of this group');
+    }
+
     return this.prisma.event.create({
       data: {
-        groupId,
+        groupId: calendar.groupId,
         calendarId: dto.calendarId,
         createdBy: currentUser.id,
         title: dto.title,

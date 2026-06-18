@@ -22,10 +22,10 @@ function fetcher(url: string) {
   return api.get<ApiEvent[]>(url).then((res) => res.data);
 }
 
-export function useEvents(month: string) {
-  const { data, error, isLoading, mutate } = useSWR<ApiEvent[]>(
-    `/events?month=${month}`,
-    fetcher,
-  );
+export function useEvents(month: string, groupId?: string | null) {
+  const key = groupId
+    ? `/events?month=${month}&groupId=${groupId}`
+    : `/events?month=${month}`;
+  const { data, error, isLoading, mutate } = useSWR<ApiEvent[]>(key, fetcher);
   return { events: data ?? [], isLoading, error, mutate };
 }

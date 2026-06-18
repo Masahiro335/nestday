@@ -35,8 +35,20 @@ export class GroupsService {
     return this.formatGroup(group);
   }
 
+  async getMyGroups(currentUser: User) {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId: currentUser.id },
+    });
+    const groups = await Promise.all(
+      memberships.map((m) =>
+        this.prisma.group.findUnique({ where: { id: m.groupId }, ...memberInclude }),
+      ),
+    );
+    return groups.filter(Boolean).map((g) => this.formatGroup(g!));
+  }
+
   async getMyGroup(currentUser: User) {
-    const membership = await this.prisma.groupMember.findUnique({
+    const membership = await this.prisma.groupMember.findFirst({
       where: { userId: currentUser.id },
     });
     if (!membership) {
@@ -73,11 +85,17 @@ export class GroupsService {
       throw new NotFoundException('Invalid invite token');
     }
 
+    // 同じグループへの重複参加をチェック（複合ユニーク）
     const existing = await this.prisma.groupMember.findUnique({
-      where: { userId: currentUser.id },
+      where: {
+        groupId_userId: {
+          groupId: group.id,
+          userId: currentUser.id,
+        },
+      },
     });
     if (existing) {
-      throw new ConflictException('Already a member of a group');
+      throw new ConflictException('Already a member of this group');
     }
 
     await this.prisma.groupMember.create({

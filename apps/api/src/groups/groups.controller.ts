@@ -20,9 +20,15 @@ export class GroupsController {
   }
 
   @Get('me')
-  @ApiOperation({ summary: 'Get my group with members' })
+  @ApiOperation({ summary: 'Get my first group with members' })
   getMyGroup(@CurrentUser() user: User) {
     return this.groupsService.getMyGroup(user);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all groups the current user belongs to' })
+  getMyGroups(@CurrentUser() user: User) {
+    return this.groupsService.getMyGroups(user);
   }
 
   @Get('join/:token')

@@ -5,7 +5,9 @@ import Link from 'next/link';
 import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WorkCalendarGrid from '@/components/work/WorkCalendarGrid';
 import ShiftSelectPanel from '@/components/work/ShiftSelectPanel';
+import GroupSheet from '@/components/ui/GroupSheet';
 import { useShifts, useShiftPatterns } from '@/hooks/use-shifts';
+import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
 import { createClient } from '@/lib/supabase';
 
 function toMonthStr(year: number, month: number) {
@@ -18,20 +20,40 @@ export default function WorkCalendarPage() {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [showGroupSheet, setShowGroupSheet] = useState(false);
 
+  const { groups } = useGroups();
   const monthStr = toMonthStr(year, month);
-  const { shifts, mutate } = useShifts(monthStr);
+  const { shifts, mutate } = useShifts(monthStr, selectedGroupId);
   const { patterns } = useShiftPatterns();
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session } }) => {
       setCurrentUserId(session?.user.id);
     });
+    const stored = getStoredGroupId();
+    if (stored) setSelectedGroupId(stored);
   }, []);
+
+  useEffect(() => {
+    if (groups.length === 0) return;
+    const stored = getStoredGroupId();
+    const valid = stored && groups.some((g) => g.id === stored);
+    if (!valid) {
+      setSelectedGroupId(groups[0].id);
+      setStoredGroupId(groups[0].id);
+    }
+  }, [groups]);
+
+  function handleSelectGroup(groupId: string) {
+    setSelectedGroupId(groupId);
+    setStoredGroupId(groupId);
+  }
 
   function handlePrev() {
     if (month === 1) { setYear((y) => y - 1); setMonth(12); }
-    else setMonth((m) => m - 1);
+    else setMonth((m) => m + -1);
   }
   function handleNext() {
     if (month === 12) { setYear((y) => y + 1); setMonth(1); }
@@ -39,12 +61,22 @@ export default function WorkCalendarPage() {
   }
 
   const myShiftOnDate = selectedDate
-    ? shifts.find((s) => s.date === selectedDate && s.user_id === currentUserId)
+    ? shifts.find((s) => s.date === selectedDate && s.userId === currentUserId)
     : undefined;
+
+  const selectedGroup = groups.find((g) => g.id === selectedGroupId);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <CalendarHeader year={year} month={month} onPrev={handlePrev} onNext={handleNext} />
+      <CalendarHeader
+        year={year}
+        month={month}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        groupName={selectedGroup?.name}
+        hasMultipleGroups={groups.length > 1}
+        onGroupTap={() => setShowGroupSheet(true)}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 12px' }}>
         <Link
@@ -69,6 +101,14 @@ export default function WorkCalendarPage() {
         patterns={patterns}
         onClose={() => setSelectedDate(null)}
         onUpdated={() => mutate()}
+      />
+
+      <GroupSheet
+        isOpen={showGroupSheet}
+        groups={groups}
+        selectedGroupId={selectedGroupId}
+        onSelect={handleSelectGroup}
+        onClose={() => setShowGroupSheet(false)}
       />
     </div>
   );
