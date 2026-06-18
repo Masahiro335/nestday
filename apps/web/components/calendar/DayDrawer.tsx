@@ -9,6 +9,7 @@ interface DayDrawerProps {
   events: ApiEvent[];
   onClose: () => void;
   currentUserId?: string;
+  membersMap?: Record<string, string>;
 }
 
 function toHHMM(isoStr: string): string {
@@ -27,7 +28,35 @@ function formatDateLabel(dateStr: string): string {
   return `${d.getMonth() + 1}月${d.getDate()}日（${DOW[d.getDay()]}）`;
 }
 
-export default function DayDrawer({ isOpen, date, events, onClose, currentUserId }: DayDrawerProps) {
+function CreatorBadge({ name, isMe }: { name: string; isMe: boolean }) {
+  return (
+    <span
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 3,
+        fontSize: 11,
+        color: isMe ? '#3b82f6' : '#6b7280',
+        background: isMe ? '#eff6ff' : '#f3f4f6',
+        padding: '1px 6px',
+        borderRadius: 10,
+        marginTop: 3,
+        fontWeight: 500,
+      }}
+    >
+      👤 {isMe ? `${name}（自分）` : name}
+    </span>
+  );
+}
+
+export default function DayDrawer({
+  isOpen,
+  date,
+  events,
+  onClose,
+  currentUserId,
+  membersMap = {},
+}: DayDrawerProps) {
   const router = useRouter();
 
   if (!isOpen || !date) return null;
@@ -85,7 +114,9 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
             </p>
           ) : (
             events.map((ev) => {
-              const isOwner = currentUserId && ev.createdBy === currentUserId;
+              const isOwner = !!currentUserId && ev.createdBy === currentUserId;
+              const creatorName = membersMap[ev.createdBy];
+
               return (
                 <div
                   key={ev.id}
@@ -114,8 +145,12 @@ export default function DayDrawer({ isOpen, date, events, onClose, currentUserId
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 15, fontWeight: 500 }}>{ev.title}</div>
+                    {/* 作成者バッジ */}
+                    {creatorName && (
+                      <CreatorBadge name={creatorName} isMe={isOwner} />
+                    )}
                     {ev.location && (
-                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         📍 {ev.location}
                       </div>
                     )}

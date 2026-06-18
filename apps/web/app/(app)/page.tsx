@@ -8,6 +8,13 @@ import DayDrawer from '@/components/calendar/DayDrawer';
 import FAB from '@/components/ui/FAB';
 import { useEvents } from '@/hooks/use-events';
 import { createClient } from '@/lib/supabase';
+import api from '@/lib/api';
+
+interface ApiMember {
+  id: string;
+  email: string;
+  name?: string;
+}
 
 function toMonthStr(year: number, month: number) {
   return `${year}-${String(month).padStart(2, '0')}`;
@@ -20,11 +27,25 @@ export default function PrivateCalendarPage() {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
+  const [membersMap, setMembersMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    createClient().auth.getSession().then(({ data: { session } }) => {
+    async function init() {
+      const { data: { session } } = await createClient().auth.getSession();
       setCurrentUserId(session?.user.id);
-    });
+
+      try {
+        const { data } = await api.get<{ members: ApiMember[] }>('/groups/me');
+        const map: Record<string, string> = {};
+        data.members.forEach((m) => {
+          map[m.id] = m.name ?? m.email.split('@')[0];
+        });
+        setMembersMap(map);
+      } catch {
+        // グループ未所属
+      }
+    }
+    init();
   }, []);
 
   const monthStr = toMonthStr(year, month);
@@ -62,6 +83,7 @@ export default function PrivateCalendarPage() {
         events={selectedEvents}
         onClose={() => setSelectedDate(null)}
         currentUserId={currentUserId}
+        membersMap={membersMap}
       />
       <FAB onClick={() => router.push('/events/new')} />
     </div>
