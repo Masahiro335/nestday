@@ -321,6 +321,7 @@ page.tsx（サーバーコンポーネント: tokenからグループ情報取�
 ┌──────────────────────────┐
 │ 〇〇家 ▼    [P][W] ‹ ›  │  ← CalendarHeader（グループ名タップで切替）
 │ 6月                      │
+│ [全員            ▼]      │  ← メンバー絞り込みセレクトボックス
 │ 日 月 火 水 木 金 土      │
 │─────────────────────────│
 │  1  2  3  4  5  6  7   │
@@ -347,18 +348,19 @@ page.tsx
 │   ├── 年月表示（YYYY年M月）
 │   ├── カレンダー切替トグル（[P][W]ボタン）   ← 表示中は `/`、もう一方は `/work`
 │   ├── 月移動ボタン（‹ ›）
+│   ├── メンバー絞り込みセレクトボックス        ← 「全員」＋グループメンバー一覧
 │   └── 曜日ヘッダー（日〜土）
 │
 ├── CalendarGrid
 │   └── DayCell × 日数分
 │       ├── 日付数字（今日はハイライト）
-│       └── EventBadge × イベント数分
+│       └── EventBadge × イベント数分（filteredEvents を表示）
 │           └── タイトル・背景色
 │
 ├── DayDrawer（selectedDate != null のとき表示）
 │   ├── ドラッグハンドル
 │   ├── 日付ヘッダー + 閉じるボタン
-│   ├── EventRow × イベント数分
+│   ├── EventRow × イベント数分（filteredEvents を表示）
 │   │   ├── カラードット
 │   │   ├── 時刻（終日 or HH:MM）
 │   │   ├── タイトル
@@ -376,8 +378,17 @@ page.tsx
 - `selectedDate: string | null` 選択日付
 - `month: { year, month }` 表示月
 - `events: Event[]` SWRでフェッチ（`groupId` クエリで選択グループに絞り込み）
+- `filteredEvents: Event[]` `selectedMemberId` で `event.createdBy` を絞り込んだ結果（全員選択時は `events` と同一）
 - `selectedGroupId: string | null` 選択グループID（localStorage で永続化）
+- `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
 - `showGroupSheet: boolean` グループ切替シート表示状態
+- `members` 選択グループの `members` 配列（`useGroups()` から取得）
+
+**絞り込みロジック**
+
+- 「全員」選択時（`selectedMemberId === ''`）: 全イベントを表示
+- メンバー選択時: `event.createdBy === selectedMemberId` のイベントのみ表示
+- グループ切り替え時は「全員」にリセット
 
 ---
 
@@ -478,10 +489,11 @@ page.tsx（サーバーコンポーネント: イベント取得・権限チェ�
 ┌──────────────────────────┐
 │ 2026        [P][W] ‹ ›  │  ← CalendarHeader（共通）
 │ 6月                      │
+│ [全員            ▼]      │  ← メンバー絞り込みセレクトボックス
 │ 日 月 火 水 木 金 土      │
 │─────────────────────────│
 │  1   2   3   4   5  6   │
-│  1  ①  3   6   1  ●   │  ← ShiftCell（メンバー全員分）
+│  1  ①  3   6   1  ●   │  ← ShiftCell（filteredShifts を表示）
 │                      🔧  │  ← パターン管理ボタン → /work/patterns
 │─────────────── パネル ──│  ← ShiftSelectPanel（日付タップ時）
 │ 6月12日                  │
@@ -499,9 +511,10 @@ page.tsx（サーバーコンポーネント: イベント取得・権限チェ�
 ```
 page.tsx
 ├── CalendarHeader（共通コンポーネント）
+│   └── メンバー絞り込みセレクトボックス（「全員」＋グループメンバー一覧）
 │
 ├── WorkCalendarGrid
-│   └── ShiftCell × 日数分
+│   └── ShiftCell × 日数分（filteredShifts を受け取る）
 │       └── ShiftBadge × メンバー数分
 │           ├── パターン名称（例: 1, 振休）
 │           └── カラードット or 背景色
@@ -510,7 +523,7 @@ page.tsx
 │
 └── ShiftSelectPanel（selectedDate != null のとき表示）
     ├── 日付ヘッダー + 閉じるボタン
-    ├── 「自分のシフト」セクション
+    ├── 「自分のシフト」セクション（絞り込みに関係なく常に自分のシフトを参照）
     │   └── ShiftPatternGrid
     │       └── ShiftPatternCard × パターン数分
     │           ├── パターン名称（色付き）
@@ -526,8 +539,18 @@ page.tsx
 
 - `selectedDate: string | null`
 - `month: { year, month }`
-- `shifts: MonthlyShifts` SWRでフェッチ
+- `shifts: Shift[]` SWRでフェッチ（全メンバー分・フィルタ前の生データ）
+- `filteredShifts: Shift[]` `selectedMemberId` で `shift.userId` を絞り込んだ結果（全員選択時は `shifts` と同一）
 - `myPatterns: ShiftPattern[]` SWRでフェッチ
+- `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
+- `members` 選択グループの `members` 配列（`useGroups()` から取得）
+
+**絞り込みロジック**
+
+- 「全員」選択時（`selectedMemberId === ''`）: 全シフトを表示
+- メンバー選択時: `shift.userId === selectedMemberId` のシフトのみ表示
+- ShiftSelectPanel の自分シフト編集は `shifts`（フィルタ前）を参照するため、絞り込みの影響を受けない
+- グループ切り替え時は「全員」にリセット
 
 ---
 
@@ -834,20 +857,25 @@ MemberDetailModal
 
 画面5・8で共通使用。
 
-| 要素           | 説明                              |
-| -------------- | --------------------------------- |
-| グループ名     | 選択中グループ名。複数グループ所属時はタップ可能（`▼` 表示）。タップで GroupSheet を開く |
-| 年表示         | YYYY（小さめ）                    |
-| 月表示         | M月（大きめ・太字）               |
-| カレンダー切替 | `[P]`=プライベート / `[W]`=仕事用 |
-| 月移動         | ‹（前月）› （次月）               |
-| 曜日ヘッダー   | 日〜土（日=赤・土=青）            |
+| 要素                       | 説明                              |
+| -------------------------- | --------------------------------- |
+| グループ名                 | 選択中グループ名。複数グループ所属時はタップ可能（`▼` 表示）。タップで GroupSheet を開く |
+| 年表示                     | YYYY（小さめ）                    |
+| 月表示                     | M月（大きめ・太字）               |
+| カレンダー切替             | `[P]`=プライベート / `[W]`=仕事用 |
+| 月移動                     | ‹（前月）› （次月）               |
+| メンバー絞り込みセレクト   | 「全員」＋グループメンバー一覧。本人には「（自分）」を付加 |
+| 曜日ヘッダー               | 日〜土（日=赤・土=青）            |
 
-| プロパティ            | 型          | 説明                                       |
-| --------------------- | ----------- | ------------------------------------------ |
-| `groupName`           | string?     | 選択中グループ名                           |
-| `hasMultipleGroups`   | boolean?    | 複数グループ所属時 `true`。グループ名をタップ可能にする |
-| `onGroupTap`          | () => void? | グループ名タップ時コールバック             |
+| プロパティ          | 型                              | 説明                                       |
+| ------------------- | ------------------------------- | ------------------------------------------ |
+| `groupName`         | string?                         | 選択中グループ名                           |
+| `hasMultipleGroups` | boolean?                        | 複数グループ所属時 `true`。グループ名をタップ可能にする |
+| `onGroupTap`        | () => void?                     | グループ名タップ時コールバック             |
+| `members`           | `{ id, name?, email }[]`?       | セレクトボックスに表示するメンバー一覧     |
+| `currentUserId`     | string?                         | 本人判定用。一致するメンバーに「（自分）」を表示 |
+| `selectedMemberId`  | string?                         | 選択中メンバーID（`''` = 全員）            |
+| `onMemberChange`    | (memberId: string) => void?     | メンバー選択変更コールバック               |
 
 ### GroupSheet
 
