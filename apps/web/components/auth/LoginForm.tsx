@@ -6,7 +6,11 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
 import api from '@/lib/api';
 
-export default function LoginForm() {
+interface LoginFormProps {
+  redirectTo?: string;
+}
+
+export default function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,6 +30,13 @@ export default function LoginForm() {
       return;
     }
 
+    // 招待リンク経由の場合はそこへ戻る
+    if (redirectTo) {
+      document.cookie = 'has_group=false; path=/';
+      router.push(redirectTo);
+      return;
+    }
+
     try {
       await api.get('/groups/me');
       document.cookie = 'has_group=true; path=/';
@@ -36,11 +47,22 @@ export default function LoginForm() {
     }
   }
 
+  // 新規登録リンクに redirect を引き継ぐ
+  const registerHref = redirectTo
+    ? `/register?redirect=${encodeURIComponent(redirectTo)}`
+    : '/register';
+
   return (
     <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: 360, padding: '0 24px' }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 32, textAlign: 'center' }}>
+      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
         NestDay
       </h1>
+      {redirectTo && (
+        <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginBottom: 24 }}>
+          ログインして招待を受け取ってください
+        </p>
+      )}
+      {!redirectTo && <div style={{ marginBottom: 32 }} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
         <input
@@ -71,7 +93,7 @@ export default function LoginForm() {
 
       <p style={{ textAlign: 'center', fontSize: 14, color: '#6b7280', marginTop: 20 }}>
         アカウントをお持ちでない方は{' '}
-        <Link href="/register" style={{ color: '#3b82f6' }}>新規登録</Link>
+        <Link href={registerHref} style={{ color: '#3b82f6' }}>新規登録</Link>
       </p>
     </form>
   );

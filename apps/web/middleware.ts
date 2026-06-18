@@ -46,10 +46,14 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
   const isGroupOptionalRoute = GROUP_OPTIONAL_ROUTES.some((r) => pathname.startsWith(r));
 
-  // 未認証 + 保護ルート → /login
+  // 未認証 + 保護ルート → /login（/join/* の場合は redirect クエリを保持）
   if (!isAuthenticated && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
+    url.search = '';
+    if (pathname.startsWith('/join/')) {
+      url.searchParams.set('redirect', pathname);
+    }
     return NextResponse.redirect(url);
   }
 
