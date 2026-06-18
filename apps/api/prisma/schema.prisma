@@ -9,19 +9,19 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String        @map("password_hash")
-  name         String?
-  avatarUrl    String?       @map("avatar_url")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
-  ownedGroups  Group[]       @relation("GroupOwner")
-  groupMembers GroupMember[]
-  calendars    Calendar[]
-  events       Event[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  name          String?
+  avatarUrl     String?        @map("avatar_url")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+  calendars     Calendar[]
+  events        Event[]
+  groupMembers  GroupMember[]
+  ownedGroups   Group[]        @relation("GroupOwner")
   shiftPatterns ShiftPattern[]
-  shifts       Shift[]
+  shifts        Shift[]
 
   @@map("users")
 }
@@ -33,10 +33,10 @@ model Group {
   ownerId     String        @map("owner_id")
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
-  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
-  members     GroupMember[]
   calendars   Calendar[]
   events      Event[]
+  members     GroupMember[]
+  owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
   shifts      Shift[]
 
   @@map("groups")
@@ -62,8 +62,8 @@ model Calendar {
   createdBy String   @map("created_by")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  group     Group    @relation(fields: [groupId], references: [id])
   creator   User     @relation(fields: [createdBy], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
   events    Event[]
 
   @@map("calendars")
@@ -83,9 +83,9 @@ model Event {
   isAllDay   Boolean  @default(false) @map("is_all_day")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
-  group      Group    @relation(fields: [groupId], references: [id])
   calendar   Calendar @relation(fields: [calendarId], references: [id], onDelete: Cascade)
   creator    User     @relation(fields: [createdBy], references: [id])
+  group      Group    @relation(fields: [groupId], references: [id])
 
   @@map("events")
 }
@@ -116,9 +116,9 @@ model Shift {
   date           DateTime     @db.Date
   createdAt      DateTime     @default(now()) @map("created_at")
   updatedAt      DateTime     @updatedAt @map("updated_at")
-  user           User         @relation(fields: [userId], references: [id])
   group          Group        @relation(fields: [groupId], references: [id])
   shiftPattern   ShiftPattern @relation(fields: [shiftPatternId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
 
   @@unique([userId, date])
   @@map("shifts")
