@@ -34,8 +34,8 @@ export class EventsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get an event by ID' })
-  findOne(@Param('id') id: string) {
-    return this.eventsService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: User) {
+    return this.eventsService.findOne(id, user);
   }
 
   @Post()

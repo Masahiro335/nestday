@@ -23,7 +23,7 @@ export class ShiftsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findUnique({
+    const membership = await this.prisma.groupMember.findFirst({
       where: { userId },
     });
     if (!membership) {
@@ -32,17 +32,26 @@ export class ShiftsService {
     return membership.groupId;
   }
 
+  private async getGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+    });
+    if (memberships.length === 0) {
+      throw new NotFoundException('Group not found');
+    }
+    return memberships.map((m) => m.groupId);
+  }
+
   async findAll(query: GetEventsQueryDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const groupIds = await this.getGroupIds(currentUser.id);
 
     const [year, month] = query.month.split('-').map(Number);
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0);
 
-    // Fetch all shifts for groupId in the month, include shift_pattern nested
     return this.prisma.shift.findMany({
       where: {
-        groupId,
+        groupId: { in: groupIds },
         date: { gte: monthStart, lte: monthEnd },
       },
       ...shiftInclude,
@@ -54,7 +63,6 @@ export class ShiftsService {
     const groupId = await this.getGroupId(currentUser.id);
     const parsedDate = new Date(date);
 
-    // upsert by userId + date unique constraint
     return this.prisma.shift.upsert({
       where: {
         userId_date: {

@@ -50,7 +50,7 @@ model GroupMember {
   group    Group    @relation(fields: [groupId], references: [id])
   user     User     @relation(fields: [userId], references: [id])
 
-  @@unique([userId])
+  @@unique([groupId, userId])
   @@map("group_members")
 }
 

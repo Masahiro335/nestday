@@ -9,7 +9,7 @@ export class CalendarsService {
   constructor(private readonly prisma: PrismaService) {}
 
   private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findUnique({
+    const membership = await this.prisma.groupMember.findFirst({
       where: { userId },
     });
     if (!membership) {
@@ -18,10 +18,20 @@ export class CalendarsService {
     return membership.groupId;
   }
 
+  private async getGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+    });
+    if (memberships.length === 0) {
+      throw new NotFoundException('Group not found');
+    }
+    return memberships.map((m) => m.groupId);
+  }
+
   async findAll(currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const groupIds = await this.getGroupIds(currentUser.id);
     return this.prisma.calendar.findMany({
-      where: { groupId },
+      where: { groupId: { in: groupIds } },
       orderBy: { createdAt: 'asc' },
     });
   }

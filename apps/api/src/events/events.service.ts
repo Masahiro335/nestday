@@ -9,8 +9,9 @@ import { UpdateEventDto } from './dto/update-event.dto';
 export class EventsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /** ユーザーが所属する最初のグループIDを返す（グループ未所属は NotFoundException） */
   private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findUnique({
+    const membership = await this.prisma.groupMember.findFirst({
       where: { userId },
     });
     if (!membership) {
@@ -19,23 +20,40 @@ export class EventsService {
     return membership.groupId;
   }
 
-  async findOne(id: string) {
+  /** ユーザーが所属する全グループIDを返す（グループ未所属は NotFoundException） */
+  private async getGroupIds(userId: string): Promise<string[]> {
+    const memberships = await this.prisma.groupMember.findMany({
+      where: { userId },
+    });
+    if (memberships.length === 0) {
+      throw new NotFoundException('Group not found');
+    }
+    return memberships.map((m) => m.groupId);
+  }
+
+  /** グループ所属チェックのみ（グループ内外は問わない） */
+  private async requireGroupMembership(userId: string): Promise<void> {
+    const count = await this.prisma.groupMember.count({ where: { userId } });
+    if (count === 0) throw new NotFoundException('Group not found');
+  }
+
+  async findOne(id: string, currentUser: User) {
+    await this.requireGroupMembership(currentUser.id);
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('Event not found');
     return event;
   }
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const groupIds = await this.getGroupIds(currentUser.id);
 
     const [year, month] = query.month.split('-').map(Number);
-    // Filter: start_at <= monthEnd AND end_at >= monthStart
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
 
     return this.prisma.event.findMany({
       where: {
-        groupId,
+        groupId: { in: groupIds },
         startAt: { lte: monthEnd },
         endAt: { gte: monthStart },
       },
