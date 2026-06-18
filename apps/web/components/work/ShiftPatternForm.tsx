@@ -4,7 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import ColorPicker from '@/components/ui/ColorPicker';
 import api from '@/lib/api';
-import type { ShiftPattern } from '@calendar-share/types';
+
+interface ApiShiftPatternResponse {
+  id: string;
+  name: string;
+  color: string;
+  startTime: string | null;
+  endTime: string | null;
+  breakMinutes: number;
+  isDayOff: boolean;
+  sortOrder: number;
+}
 
 const SHIFT_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e',
@@ -45,13 +55,13 @@ export default function ShiftPatternForm({ patternId }: ShiftPatternFormProps) {
 
   const loadPattern = useCallback(async () => {
     try {
-      const { data } = await api.get<ShiftPattern>(`/shift-patterns/${patternId}`);
+      const { data } = await api.get<ApiShiftPatternResponse>(`/shift-patterns/${patternId}`);
       setName(data.name);
       setColor(data.color);
-      setStartTime(data.start_time ?? '09:00');
-      setEndTime(data.end_time ?? '18:00');
-      setBreakMinutes(data.break_minutes ?? 0);
-      setIsDayOff(data.is_day_off);
+      setStartTime(data.startTime ?? '09:00');
+      setEndTime(data.endTime ?? '18:00');
+      setBreakMinutes(data.breakMinutes ?? 0);
+      setIsDayOff(data.isDayOff);
     } catch {
       router.replace('/work/patterns');
     } finally {
@@ -70,10 +80,10 @@ export default function ShiftPatternForm({ patternId }: ShiftPatternFormProps) {
     const payload = {
       name,
       color,
-      start_time: isDayOff ? undefined : startTime,
-      end_time: isDayOff ? undefined : endTime,
-      break_minutes: isDayOff ? 0 : breakMinutes,
-      is_day_off: isDayOff,
+      startTime: isDayOff ? undefined : startTime,
+      endTime: isDayOff ? undefined : endTime,
+      breakMinutes: isDayOff ? 0 : breakMinutes,
+      isDayOff,
     };
     try {
       if (isEdit) {
