@@ -99,7 +99,7 @@ export default function SettingsPage() {
     <div style={{ background: '#f9fafb', minHeight: '100vh', paddingBottom: 'calc(var(--bottom-nav-height) + 16px)' }}>
       {/* ヘッダー */}
       <div style={{ background: '#fff', padding: '16px', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10 }}>
-        <h1 style={{ fontSize: 18, fontWeight: 700, textAlign: 'center' }}>設定</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, textAlign: 'center' }}>グループ設定</h1>
       </div>
 
       {group ? (
