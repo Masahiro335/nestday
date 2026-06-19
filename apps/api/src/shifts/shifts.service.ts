@@ -42,6 +42,10 @@ export class ShiftsService {
     return memberships.map((m) => m.groupId);
   }
 
+  private formatShiftDate<T extends { date: Date }>(shift: T): Omit<T, 'date'> & { date: string } {
+    return { ...shift, date: shift.date.toISOString().slice(0, 10) };
+  }
+
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupIds = await this.getGroupIds(currentUser.id);
     const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
@@ -50,7 +54,7 @@ export class ShiftsService {
     const monthStart = new Date(year, month - 1, 1);
     const monthEnd = new Date(year, month, 0);
 
-    return this.prisma.shift.findMany({
+    const shifts = await this.prisma.shift.findMany({
       where: {
         groupId: { in: targetGroupIds },
         date: { gte: monthStart, lte: monthEnd },
@@ -58,13 +62,14 @@ export class ShiftsService {
       ...shiftInclude,
       orderBy: [{ date: 'asc' }, { userId: 'asc' }],
     });
+    return shifts.map((s) => this.formatShiftDate(s));
   }
 
   async assign(date: string, dto: AssignShiftDto, currentUser: User) {
     const groupId = await this.getGroupId(currentUser.id);
     const parsedDate = new Date(date);
 
-    return this.prisma.shift.upsert({
+    const shift = await this.prisma.shift.upsert({
       where: {
         userId_date: {
           userId: currentUser.id,
@@ -82,6 +87,7 @@ export class ShiftsService {
       },
       ...shiftInclude,
     });
+    return this.formatShiftDate(shift);
   }
 
   async remove(date: string, currentUser: User) {

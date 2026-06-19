@@ -291,6 +291,10 @@ apps/api/src/shifts/
 - `group_id = currentUser.groupId AND date >= 月初 AND date <= 月末`
 - `shift_pattern` を JOIN して返す（`Shift & { shift_pattern: ShiftPattern }`）
 
+**日付フィールドのフォーマット変換**
+- Prisma の `@db.Date` 型は JavaScript `Date` オブジェクトとして返るため、JSON シリアライズ時に `"2026-06-25T00:00:00.000Z"` 形式になる
+- OpenAPI 仕様で `date` フィールドは `format: date`（YYYY-MM-DD）と定義しているため、サービス層で `date.toISOString().slice(0, 10)` に変換してから返却する
+
 **`is_day_off = true` の場合**  
 `start_time` / `end_time` は null を許容（DTO でバリデーション分岐）
 
@@ -483,3 +487,4 @@ model Shift {
 | 日付 | 内容 |
 |------|------|
 | 2026-06-16 | 初版作成（Prisma + Supabase Auth 構成） |
+| 2026-06-19 | Shifts サービスの日付フォーマット変換仕様を追記（`@db.Date` → YYYY-MM-DD） |
