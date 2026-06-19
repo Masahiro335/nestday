@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { GroupsModule } from './groups/groups.module';
 import { CalendarsModule } from './calendars/calendars.module';
 import { EventsModule } from './events/events.module';
+import { ColorLabelsModule } from './color-labels/color-labels.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { UsersModule } from './users/users.module';
 
@@ -20,6 +21,7 @@ import { UsersModule } from './users/users.module';
     GroupsModule,
     CalendarsModule,
     EventsModule,
+    ColorLabelsModule,
     ShiftsModule,
     UsersModule,
   ],

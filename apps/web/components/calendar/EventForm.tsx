@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import ColorPicker from '@/components/ui/ColorPicker';
 import api from '@/lib/api';
 import { createClient } from '@/lib/supabase';
@@ -20,6 +21,12 @@ interface ApiEvent {
 }
 
 interface ApiCalendar {
+  id: string;
+  name: string;
+  color: string;
+}
+
+interface ApiColorLabel {
   id: string;
   name: string;
   color: string;
@@ -57,13 +64,18 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [initializing, setInitializing] = useState(true);
   const [isOwner, setIsOwner] = useState(true);
+  const [colorLabels, setColorLabels] = useState<ApiColorLabel[]>([]);
 
   useEffect(() => {
     async function init() {
       try {
         // カレンダー一覧取得。なければ「プライベート」を自動作成
         const calendarUrl = groupId ? `/calendars?groupId=${groupId}` : '/calendars';
-        let { data: calendars } = await api.get<ApiCalendar[]>(calendarUrl);
+        const [calendarRes, colorLabelRes] = await Promise.all([
+          api.get<ApiCalendar[]>(calendarUrl),
+          api.get<ApiColorLabel[]>('/color-labels'),
+        ]);
+        let calendars = calendarRes.data;
         if (calendars.length === 0) {
           const { data: created } = await api.post<ApiCalendar>('/calendars', {
             name: 'プライベート',
@@ -73,6 +85,7 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
           calendars = [created];
         }
         setCalendarId(calendars[0].id);
+        setColorLabels(colorLabelRes.data);
 
         if (eventId) {
           const [{ data }, { data: { session } }] = await Promise.all([
@@ -232,11 +245,60 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
 
         {/* カラー */}
         <div style={{ padding: '16px 0', borderBottom: '1px solid #e5e7eb' }}>
-          <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 8 }}>カラー</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <p style={{ fontSize: 13, color: '#6b7280' }}>カラー</p>
+            {!readOnly && (
+              <Link href="/color-labels" style={{ fontSize: 12, color: '#3b82f6', padding: '2px 8px', border: '1px solid #bfdbfe', borderRadius: 6 }}>
+                カラー編集
+              </Link>
+            )}
+          </div>
           {readOnly ? (
             <span style={{ display: 'inline-block', width: 24, height: 24, borderRadius: '50%', background: color }} />
           ) : (
-            <ColorPicker value={color} onChange={setColor} />
+            <>
+              <ColorPicker value={color} onChange={setColor} />
+              {colorLabels.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <p style={{ fontSize: 12, color: '#9ca3af', marginBottom: 6 }}>マイカラー</p>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {colorLabels.map((label) => (
+                      <button
+                        key={label.id}
+                        type="button"
+                        onClick={() => setColor(label.color)}
+                        title={label.name}
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 3,
+                          background: 'none',
+                          padding: 0,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: label.color,
+                            border: color === label.color ? '3px solid #1a1a1a' : '2px solid transparent',
+                            outline: color === label.color ? '2px solid #fff' : 'none',
+                            outlineOffset: -4,
+                          }}
+                        />
+                        <span style={{ fontSize: 10, color: '#6b7280', maxWidth: 40, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {label.name}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -279,6 +341,22 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
         </div>
 
         {error && <p style={{ color: '#ef4444', fontSize: 14, padding: '12px 0' }}>{error}</p>}
+
+        {/* 保存ボタン */}
+        {!readOnly && (
+          <button
+            type="submit"
+            disabled={loading || !title}
+            style={{
+              width: '100%', padding: '14px', marginTop: 24,
+              background: loading || !title ? '#e5e7eb' : '#3b82f6',
+              color: loading || !title ? '#9ca3af' : '#fff',
+              fontSize: 16, fontWeight: 700, borderRadius: 8,
+            }}
+          >
+            保存
+          </button>
+        )}
 
         {/* 削除ボタン（編集モード・作成者のみ） */}
         {isEdit && isOwner && (
