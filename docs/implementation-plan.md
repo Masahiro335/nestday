@@ -290,8 +290,10 @@ apps/api/src/shifts/
 
 **並び替え（クライアント側）**
 - `@dnd-kit/core` + `@dnd-kit/sortable` によるドラッグ＆ドロップで並び替えを実装
-- 各行左端のドラッグハンドル（⠿）を掴んで上下に移動する
-- `TouchSensor`（delay: 200ms）と `PointerSensor` を併用し、PC・スマートフォン両方で動作
+- 行全体をドラッグ対象とし、どこを掴んでも上下に移動できる
+- `PointerSensor`（distance: 8px）と `TouchSensor`（delay: 200ms）を併用
+  - 8px 未満の移動はクリック扱いとなり、行タップによる編集画面遷移が機能する
+  - 200ms 未満の短タップは遷移、長押しでドラッグ開始（スマートフォン対応）
 - ドロップ完了時（`onDragEnd`）に `arrayMove` で新順序を算出し、全パターンの `sortOrder` をインデックス値（0, 1, 2…）で一括再割り当て
 - 既存データに `sortOrder` の重複があっても正しく動作する
 
@@ -501,3 +503,4 @@ model Shift {
 | 2026-06-19 | Shifts サービスの日付フォーマット変換仕様を追記（`@db.Date` → YYYY-MM-DD） |
 | 2026-06-19 | ShiftPattern の sortOrder 自動付与と並び替えの一括再割り当て仕様を追記 |
 | 2026-06-19 | ShiftPattern 並び替えをドラッグ＆ドロップ（@dnd-kit）に変更 |
+| 2026-06-19 | ShiftPattern 並び替えのドラッグ範囲を行全体に変更（ハンドルアイコン廃止） |
