@@ -284,6 +284,14 @@ apps/api/src/shifts/
 
 ### 実装ポイント
 
+**`POST /shift-patterns`（sortOrder の自動付与）**
+- `sortOrder` が未指定の場合、既存パターンの `max(sortOrder) + 1` を自動付与し、常にユニークな値を保つ
+- これにより同一の `sortOrder` 値を持つパターンが生まれず、並び替えが正しく機能する
+
+**並び替え（クライアント側）**
+- ▲/▼ ボタン操作時は2件の `sortOrder` 値を交換するのではなく、新しい配列順序に基づいて全パターンの `sortOrder` をインデックス値（0, 1, 2…）で一括再割り当てする
+- 既存データに `sortOrder` の重複があっても正しく動作する
+
 **`PUT /shifts/:date`**
 - `Prisma.upsert` を使用（`unique(user_id, date)` キーでアップサート）
 
@@ -488,3 +496,4 @@ model Shift {
 |------|------|
 | 2026-06-16 | 初版作成（Prisma + Supabase Auth 構成） |
 | 2026-06-19 | Shifts サービスの日付フォーマット変換仕様を追記（`@db.Date` → YYYY-MM-DD） |
+| 2026-06-19 | ShiftPattern の sortOrder 自動付与と並び替えの一括再割り当て仕様を追記 |
