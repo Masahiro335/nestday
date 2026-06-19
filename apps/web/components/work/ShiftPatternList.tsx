@@ -51,6 +51,8 @@ function SortableItem({ pattern }: { pattern: ApiShiftPattern }) {
   return (
     <div
       ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -63,26 +65,11 @@ function SortableItem({ pattern }: { pattern: ApiShiftPattern }) {
         transition,
         zIndex: isDragging ? 10 : undefined,
         boxShadow: isDragging ? '0 4px 12px rgba(0,0,0,0.12)' : undefined,
+        cursor: isDragging ? 'grabbing' : 'grab',
+        touchAction: 'none',
+        userSelect: 'none',
       }}
     >
-      {/* ドラッグハンドル */}
-      <div
-        {...attributes}
-        {...listeners}
-        style={{
-          padding: '6px 4px',
-          cursor: isDragging ? 'grabbing' : 'grab',
-          flexShrink: 0,
-          color: '#9ca3af',
-          fontSize: 18,
-          lineHeight: 1,
-          touchAction: 'none',
-          userSelect: 'none',
-        }}
-      >
-        ⠿
-      </div>
-
       {/* パターン行（タップで編集） */}
       <Link
         href={`/work/patterns/${pattern.id}`}
@@ -125,7 +112,9 @@ function SortableItem({ pattern }: { pattern: ApiShiftPattern }) {
 
 export default function ShiftPatternList({ patterns, onReordered }: ShiftPatternListProps) {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
     useSensor(TouchSensor, {
       activationConstraint: { delay: 200, tolerance: 5 },
     }),
