@@ -289,7 +289,10 @@ apps/api/src/shifts/
 - これにより同一の `sortOrder` 値を持つパターンが生まれず、並び替えが正しく機能する
 
 **並び替え（クライアント側）**
-- ▲/▼ ボタン操作時は2件の `sortOrder` 値を交換するのではなく、新しい配列順序に基づいて全パターンの `sortOrder` をインデックス値（0, 1, 2…）で一括再割り当てする
+- `@dnd-kit/core` + `@dnd-kit/sortable` によるドラッグ＆ドロップで並び替えを実装
+- 各行左端のドラッグハンドル（⠿）を掴んで上下に移動する
+- `TouchSensor`（delay: 200ms）と `PointerSensor` を併用し、PC・スマートフォン両方で動作
+- ドロップ完了時（`onDragEnd`）に `arrayMove` で新順序を算出し、全パターンの `sortOrder` をインデックス値（0, 1, 2…）で一括再割り当て
 - 既存データに `sortOrder` の重複があっても正しく動作する
 
 **`PUT /shifts/:date`**
@@ -497,3 +500,4 @@ model Shift {
 | 2026-06-16 | 初版作成（Prisma + Supabase Auth 構成） |
 | 2026-06-19 | Shifts サービスの日付フォーマット変換仕様を追記（`@db.Date` → YYYY-MM-DD） |
 | 2026-06-19 | ShiftPattern の sortOrder 自動付与と並び替えの一括再割り当て仕様を追記 |
+| 2026-06-19 | ShiftPattern 並び替えをドラッグ＆ドロップ（@dnd-kit）に変更 |
