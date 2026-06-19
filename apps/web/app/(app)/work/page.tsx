@@ -89,15 +89,6 @@ export default function WorkCalendarPage() {
         onMemberChange={setSelectedMemberId}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 12px' }}>
-        <Link
-          href="/work/patterns"
-          style={{ fontSize: 13, color: '#6b7280', padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: 6 }}
-        >
-          🔧 パターン管理
-        </Link>
-      </div>
-
       <WorkCalendarGrid
         year={year}
         month={month}
@@ -121,6 +112,26 @@ export default function WorkCalendarPage() {
         onSelect={handleSelectGroup}
         onClose={() => setShowGroupSheet(false)}
       />
+
+      {/* パターン管理ボタン（フッター上・右端） */}
+      <Link
+        href="/work/patterns"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(var(--bottom-nav-height) + 12px)',
+          right: 16,
+          fontSize: 13,
+          color: '#6b7280',
+          padding: '6px 10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: 8,
+          background: '#fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          zIndex: 20,
+        }}
+      >
+        🔧 パターン管理
+      </Link>
     </div>
   );
 }
