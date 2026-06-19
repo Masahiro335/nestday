@@ -75,15 +75,15 @@ export class UsersService {
       throw new BadRequestException('グループオーナーはアカウントを削除できません。先にグループを解散するか、オーナーを他のメンバーに移譲してください。');
     }
 
-    // グループメンバーシップを全削除
-    await this.prisma.groupMember.deleteMany({
-      where: { userId: currentUser.id },
-    });
-
-    // ユーザーレコードを削除
-    await this.prisma.user.delete({
-      where: { id: currentUser.id },
-    });
+    await this.prisma.$transaction([
+      // Shift → ShiftPattern → Event → Calendar → GroupMember → User の順で削除
+      this.prisma.shift.deleteMany({ where: { userId: currentUser.id } }),
+      this.prisma.shiftPattern.deleteMany({ where: { userId: currentUser.id } }),
+      this.prisma.event.deleteMany({ where: { createdBy: currentUser.id } }),
+      this.prisma.calendar.deleteMany({ where: { createdBy: currentUser.id } }),
+      this.prisma.groupMember.deleteMany({ where: { userId: currentUser.id } }),
+      this.prisma.user.delete({ where: { id: currentUser.id } }),
+    ]);
 
     // Supabase Authからも削除
     const { error } = await client.auth.admin.deleteUser(currentUser.id);
