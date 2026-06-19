@@ -1,10 +1,6 @@
-@keyframes slide-from-bottom {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
-}
-@keyframes slide-from-top {
-  from { transform: translateY(-100%); }
-  to   { transform: translateY(0); }
+/* MonthSlider: webkit でスクロールバーを非表示 */
+.month-slider-inner::-webkit-scrollbar {
+  display: none;
 }
 
 *, *::before, *::after {

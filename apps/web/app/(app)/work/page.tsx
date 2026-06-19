@@ -6,9 +6,9 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WorkCalendarGrid from '@/components/work/WorkCalendarGrid';
 import ShiftSelectPanel from '@/components/work/ShiftSelectPanel';
 import GroupSheet from '@/components/ui/GroupSheet';
+import MonthSlider from '@/components/ui/MonthSlider';
 import { useShifts, useShiftPatterns } from '@/hooks/use-shifts';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
-import { useSwipe } from '@/hooks/use-swipe';
 import { createClient } from '@/lib/supabase';
 
 function toMonthStr(year: number, month: number) {
@@ -19,7 +19,6 @@ export default function WorkCalendarPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
-  const [slideDir, setSlideDir] = useState<'next' | 'prev' | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -56,17 +55,13 @@ export default function WorkCalendarPage() {
   }
 
   function handlePrev() {
-    setSlideDir('prev');
     if (month === 1) { setYear((y) => y - 1); setMonth(12); }
     else setMonth((m) => m - 1);
   }
   function handleNext() {
-    setSlideDir('next');
     if (month === 12) { setYear((y) => y + 1); setMonth(1); }
     else setMonth((m) => m + 1);
   }
-
-  const { onTouchStart, onTouchEnd } = useSwipe(handleNext, handlePrev);
 
   const selectedGroup = groups.find((g) => g.id === selectedGroupId);
   const members = selectedGroup?.members ?? [];
@@ -95,27 +90,16 @@ export default function WorkCalendarPage() {
         onMemberChange={setSelectedMemberId}
       />
 
-      <div
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        style={{ flex: 1, overflow: 'hidden' }}
-      >
-        <div
-          key={`${year}-${month}`}
-          style={{
-            height: '100%',
-            animation: slideDir === 'next' ? 'slide-from-bottom 0.25s ease' :
-                       slideDir === 'prev' ? 'slide-from-top 0.25s ease' : undefined,
-          }}
-        >
+      <MonthSlider year={year} month={month} onPrev={handlePrev} onNext={handleNext}>
+        {(y, m, isCurrent) => (
           <WorkCalendarGrid
-            year={year}
-            month={month}
-            shifts={filteredShifts}
-            onSelectDate={setSelectedDate}
+            year={y}
+            month={m}
+            shifts={isCurrent ? filteredShifts : []}
+            onSelectDate={isCurrent ? setSelectedDate : () => {}}
           />
-        </div>
-      </div>
+        )}
+      </MonthSlider>
 
       <ShiftSelectPanel
         isOpen={!!selectedDate}

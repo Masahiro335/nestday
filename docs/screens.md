@@ -359,8 +359,10 @@ page.tsx
 │   ├── メンバー絞り込みセレクトボックス        ← 「全員」＋グループメンバー一覧
 │   └── 曜日ヘッダー（日〜土）
 │
-├── スライドコンテナ（overflow:hidden・タッチスワイプ検出）
-│   └── CalendarGrid（key={year-month}・スライドアニメーション）
+├── MonthSlider（css scroll-snap・前月/現在月/次月を縦並びで保持）
+│   ├── CalendarGrid（前月・データなし）
+│   ├── CalendarGrid（現在月・filteredEvents）
+│   └── CalendarGrid（次月・データなし）
 │       └── DayCell × 日数分
 │           ├── 日付数字（今日はハイライト）
 │           └── EventBadge × イベント数分（filteredEvents を表示）
@@ -386,7 +388,6 @@ page.tsx
 
 - `selectedDate: string | null` 選択日付
 - `month: { year, month }` 表示月
-- `slideDir: 'next' | 'prev' | null` スライドアニメーション方向（次月=右から、前月=左から）
 - `events: Event[]` SWRでフェッチ（`groupId` クエリで選択グループに絞り込み）
 - `filteredEvents: Event[]` `selectedMemberId` で `event.createdBy` を絞り込んだ結果（全員選択時は `events` と同一）
 - `selectedGroupId: string | null` 選択グループID（localStorage で永続化）
@@ -394,12 +395,14 @@ page.tsx
 - `showGroupSheet: boolean` グループ切替シート表示状態
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
 
-**スライド操作**
+**縦スクロール操作**
 
-- ヘッダーの ‹ › ボタンまたは縦スワイプで月移動
-- 次月へ: 上スワイプ → カレンダーが下から上へスライドイン（`slide-from-bottom` アニメーション）
-- 前月へ: 下スワイプ → カレンダーが上から下へスライドイン（`slide-from-top` アニメーション）
-- `useSwipe` フック（`hooks/use-swipe.ts`）でタッチイベントを検出（閾値 50px）
+- `MonthSlider`（`components/ui/MonthSlider.tsx`）が前月・現在月・次月を縦に並べて保持
+- CSS `scroll-snap-type: y mandatory` により各月にスナップ
+- 下スクロール → 次月、上スクロール → 前月
+- スナップ完了後に月状態を更新し、スクロール位置を中央（現在月）に自動リセット
+- ‹ › ボタンでも月移動可能（MonthSlider が中央リセットを処理）
+- 隣接月はカレンダー構造のみ表示（イベントデータなし）
 
 **絞り込みロジック**
 
@@ -542,8 +545,10 @@ page.tsx
 ├── CalendarHeader（共通コンポーネント）
 │   └── メンバー絞り込みセレクトボックス（「全員」＋グループメンバー一覧）
 │
-├── スライドコンテナ（overflow:hidden・タッチスワイプ検出）
-│   └── WorkCalendarGrid（key={year-month}・スライドアニメーション）
+├── MonthSlider（css scroll-snap・前月/現在月/次月を縦並びで保持）
+│   ├── WorkCalendarGrid（前月・データなし）
+│   ├── WorkCalendarGrid（現在月・filteredShifts）
+│   └── WorkCalendarGrid（次月・データなし）
 │       └── ShiftCell × 日数分（filteredShifts を受け取る）
 │           └── ShiftBadge × メンバー数分
 │               ├── パターン名称（例: 1, 振休）
@@ -569,19 +574,18 @@ page.tsx
 
 - `selectedDate: string | null`
 - `month: { year, month }`
-- `slideDir: 'next' | 'prev' | null` スライドアニメーション方向
 - `shifts: Shift[]` SWRでフェッチ（全メンバー分・フィルタ前の生データ）
 - `filteredShifts: Shift[]` `selectedMemberId` で `shift.userId` を絞り込んだ結果（全員選択時は `shifts` と同一）
 - `myPatterns: ShiftPattern[]` SWRでフェッチ
 - `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
 
-**スライド操作**
+**縦スクロール操作**
 
-- ヘッダーの ‹ › ボタンまたは縦スワイプで月移動
-- 次月へ: 上スワイプ → カレンダーが下から上へスライドイン（`slide-from-bottom`）
-- 前月へ: 下スワイプ → カレンダーが上から下へスライドイン（`slide-from-top`）
-- `useSwipe` フック（`hooks/use-swipe.ts`）でタッチイベントを検出（閾値 50px）
+- `MonthSlider` が前月・現在月・次月を縦に並べて保持（`scroll-snap-type: y mandatory`）
+- 下スクロール → 次月、上スクロール → 前月
+- スナップ完了後に月状態を更新し、スクロール位置を中央に自動リセット
+- ‹ › ボタンでも月移動可能
 
 **絞り込みロジック**
 
