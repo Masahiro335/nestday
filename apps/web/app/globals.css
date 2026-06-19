@@ -1,3 +1,8 @@
+/* MonthSlider: webkit でスクロールバーを非表示 */
+.month-slider-inner::-webkit-scrollbar {
+  display: none;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

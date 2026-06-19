@@ -83,6 +83,21 @@ Table events {
   }
 }
 
+Table color_labels {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  name string [not null, note: '色の名称 e.g., 仕事、プライベート（最大30文字）']
+  color string [not null, note: 'e.g., #FF6B6B']
+  sort_order int [not null, default: 0]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    user_id
+    (user_id, sort_order)
+  }
+}
+
 Table shift_patterns {
   id uuid [pk]
   user_id uuid [not null, ref: > users.id]
@@ -146,12 +161,19 @@ Table shifts {
 //    - start_at / end_at: for all-day, only date portion is used
 //    - location: optional venue text (max 200 chars)
 //
-// 6. shift_patterns: Per-user shift pattern definitions
+// 6. color_labels: Per-user named color labels
+//    - user_id: each user manages their own color labels
+//    - name: display name for the color (max 30 chars)
+//    - color: hex color code matching EVENT_COLORS or custom
+//    - sort_order: display order on color picker UI
+//    - デフォルトカラー（EVENT_COLORS）に名称を付けた場合もここに保存
+//
+// 7. shift_patterns: Per-user shift pattern definitions
 //    - user_id: each user manages their own patterns
 //    - start_time / end_time: null when is_day_off = true
 //    - break_minutes: stored in minutes for arithmetic
 //    - sort_order: display order on pattern selection UI
 //
-// 7. shifts: Daily shift assignments per user
+// 8. shifts: Daily shift assignments per user
 //    - unique (user_id, date): one shift per user per day
 //    - group_id: denormalized for efficient group-wide queries (work calendar)

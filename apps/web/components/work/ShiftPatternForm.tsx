@@ -188,13 +188,22 @@ export default function ShiftPatternForm({ patternId }: ShiftPatternFormProps) {
 
         {error && <p style={{ color: '#ef4444', fontSize: 14, padding: '12px 0' }}>{error}</p>}
 
+        {/* 保存ボタン */}
+        <button
+          type="submit"
+          disabled={loading || !name}
+          style={{ width: '100%', padding: '14px', background: !name || loading ? '#e5e7eb' : '#3b82f6', color: !name || loading ? '#9ca3af' : '#fff', fontSize: 16, fontWeight: 600, marginTop: 24, border: 'none', borderRadius: 8, cursor: !name || loading ? 'not-allowed' : 'pointer' }}
+        >
+          {loading ? '保存中...' : '保存'}
+        </button>
+
         {/* 削除（編集モードのみ）*/}
         {isEdit && (
           <button
             type="button"
             onClick={handleDelete}
             disabled={loading}
-            style={{ width: '100%', padding: '14px', color: '#ef4444', fontSize: 16, fontWeight: 600, marginTop: 24, border: '1px solid #fca5a5', borderRadius: 8 }}
+            style={{ width: '100%', padding: '14px', color: '#ef4444', fontSize: 16, fontWeight: 600, marginTop: 12, border: '1px solid #fca5a5', borderRadius: 8, background: '#fff', cursor: loading ? 'not-allowed' : 'pointer' }}
           >
             このパターンを削除
           </button>

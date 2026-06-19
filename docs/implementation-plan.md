@@ -284,12 +284,29 @@ apps/api/src/shifts/
 
 ### 実装ポイント
 
+**`POST /shift-patterns`（sortOrder の自動付与）**
+- `sortOrder` が未指定の場合、既存パターンの `max(sortOrder) + 1` を自動付与し、常にユニークな値を保つ
+- これにより同一の `sortOrder` 値を持つパターンが生まれず、並び替えが正しく機能する
+
+**並び替え（クライアント側）**
+- `@dnd-kit/core` + `@dnd-kit/sortable` によるドラッグ＆ドロップで並び替えを実装
+- 行全体をドラッグ対象とし、どこを掴んでも上下に移動できる
+- `PointerSensor`（distance: 8px）と `TouchSensor`（delay: 200ms）を併用
+  - 8px 未満の移動はクリック扱いとなり、行タップによる編集画面遷移が機能する
+  - 200ms 未満の短タップは遷移、長押しでドラッグ開始（スマートフォン対応）
+- ドロップ完了時（`onDragEnd`）に `arrayMove` で新順序を算出し、全パターンの `sortOrder` をインデックス値（0, 1, 2…）で一括再割り当て
+- 既存データに `sortOrder` の重複があっても正しく動作する
+
 **`PUT /shifts/:date`**
 - `Prisma.upsert` を使用（`unique(user_id, date)` キーでアップサート）
 
 **`GET /shifts?month=YYYY-MM`**
 - `group_id = currentUser.groupId AND date >= 月初 AND date <= 月末`
 - `shift_pattern` を JOIN して返す（`Shift & { shift_pattern: ShiftPattern }`）
+
+**日付フィールドのフォーマット変換**
+- Prisma の `@db.Date` 型は JavaScript `Date` オブジェクトとして返るため、JSON シリアライズ時に `"2026-06-25T00:00:00.000Z"` 形式になる
+- OpenAPI 仕様で `date` フィールドは `format: date`（YYYY-MM-DD）と定義しているため、サービス層で `date.toISOString().slice(0, 10)` に変換してから返却する
 
 **`is_day_off = true` の場合**  
 `start_time` / `end_time` は null を許容（DTO でバリデーション分岐）
@@ -483,3 +500,7 @@ model Shift {
 | 日付 | 内容 |
 |------|------|
 | 2026-06-16 | 初版作成（Prisma + Supabase Auth 構成） |
+| 2026-06-19 | Shifts サービスの日付フォーマット変換仕様を追記（`@db.Date` → YYYY-MM-DD） |
+| 2026-06-19 | ShiftPattern の sortOrder 自動付与と並び替えの一括再割り当て仕様を追記 |
+| 2026-06-19 | ShiftPattern 並び替えをドラッグ＆ドロップ（@dnd-kit）に変更 |
+| 2026-06-19 | ShiftPattern 並び替えのドラッグ範囲を行全体に変更（ハンドルアイコン廃止） |

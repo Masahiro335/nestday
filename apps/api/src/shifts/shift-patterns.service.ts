@@ -16,7 +16,15 @@ export class ShiftPatternsService {
     });
   }
 
-  create(dto: CreateShiftPatternDto, currentUser: User) {
+  async create(dto: CreateShiftPatternDto, currentUser: User) {
+    let sortOrder = dto.sortOrder;
+    if (sortOrder === undefined) {
+      const agg = await this.prisma.shiftPattern.aggregate({
+        where: { userId: currentUser.id },
+        _max: { sortOrder: true },
+      });
+      sortOrder = (agg._max.sortOrder ?? -1) + 1;
+    }
     return this.prisma.shiftPattern.create({
       data: {
         userId: currentUser.id,
@@ -26,7 +34,7 @@ export class ShiftPatternsService {
         endTime: dto.endTime ?? null,
         breakMinutes: dto.breakMinutes ?? 0,
         isDayOff: dto.isDayOff ?? false,
-        sortOrder: dto.sortOrder ?? 0,
+        sortOrder,
       },
     });
   }

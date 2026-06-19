@@ -19,6 +19,7 @@
 | 13  | グループ作成           | `/groups/new`         | 必要 | 不問                 |
 | 14  | プロフィール設定       | `/groups-settings/profile`   | 必要 | 不問                 |
 | 15  | アカウント設定         | `/groups-settings/account`   | 必要 | 不問                 |
+| 16  | カラー編集             | `/color-labels`       | 必要 | 不問                 |
 
 ---
 
@@ -50,6 +51,7 @@
            │       ├─ 日付タップ ──▶ 下部ドロワー展開（同画面内）
            │       │                   └─ イベント行タップ ──▶ /events/[id]/edit（作成者のみ）
            │       └─ FAB（＋）──▶ /events/new?groupId=xxx
+           │                           ├─ カラー編集ボタン ──▶ /color-labels
            │                           └─ 保存 ──▶ /
            │
            ├─▶ /work（仕事用カレンダー）
@@ -111,12 +113,14 @@ apps/web/src/
 │   │   │       │   └── page.tsx     # 画面10(新規): シフトパターン作成
 │   │   │       └── [id]/
 │   │   │           └── page.tsx     # 画面11: シフトパターン編集
-│   │   └── groups-settings/
-│   │       ├── page.tsx             # 画面12: グループ設定
-│   │       ├── profile/
-│   │       │   └── page.tsx         # 画面14: プロフィール設定
-│   │       └── account/
-│   │           └── page.tsx         # 画面15: アカウント設定
+│   │   ├── groups-settings/
+│   │   │   ├── page.tsx             # 画面12: グループ設定
+│   │   │   ├── profile/
+│   │   │   │   └── page.tsx         # 画面14: プロフィール設定
+│   │   │   └── account/
+│   │   │       └── page.tsx         # 画面15: アカウント設定
+│   │   └── color-labels/
+│   │       └── page.tsx             # 画面16: カラー編集
 │   │
 │   └── layout.tsx                   # ルートレイアウト
 │
@@ -147,6 +151,8 @@ apps/web/src/
         ├── BottomNav.tsx
         ├── GroupSheet.tsx
         └── ColorPicker.tsx
+
+> **注**: `color-labels/page.tsx` はカラーラベル管理ロジックをページ内にインライン実装（専用コンポーネントなし）
 ```
 
 ---
@@ -353,11 +359,14 @@ page.tsx
 │   ├── メンバー絞り込みセレクトボックス        ← 「全員」＋グループメンバー一覧
 │   └── 曜日ヘッダー（日〜土）
 │
-├── CalendarGrid
-│   └── DayCell × 日数分
-│       ├── 日付数字（今日はハイライト）
-│       └── EventBadge × イベント数分（filteredEvents を表示）
-│           └── タイトル・背景色
+├── MonthSlider（css scroll-snap・前月/現在月/次月を縦並びで保持）
+│   ├── CalendarGrid（前月・データなし）
+│   ├── CalendarGrid（現在月・filteredEvents）
+│   └── CalendarGrid（次月・データなし）
+│       └── DayCell × 日数分
+│           ├── 日付数字（今日はハイライト）
+│           └── EventBadge × イベント数分（filteredEvents を表示）
+│               └── タイトル・背景色
 │
 ├── DayDrawer（selectedDate != null のとき表示）
 │   ├── ドラッグハンドル
@@ -386,6 +395,15 @@ page.tsx
 - `showGroupSheet: boolean` グループ切替シート表示状態
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
 
+**縦スクロール操作**
+
+- `MonthSlider`（`components/ui/MonthSlider.tsx`）が前月・現在月・次月を縦に並べて保持
+- CSS `scroll-snap-type: y mandatory` により各月にスナップ
+- 下スクロール → 次月、上スクロール → 前月
+- スナップ完了後に月状態を更新し、スクロール位置を中央（現在月）に自動リセット
+- ‹ › ボタンでも月移動可能（MonthSlider が中央リセットを処理）
+- 隣接月はカレンダー構造のみ表示（イベントデータなし）
+
 **絞り込みロジック**
 
 - 「全員」選択時（`selectedMemberId === ''`）: 全イベントを表示
@@ -409,14 +427,19 @@ page.tsx
 │ 金曜日  →  金曜日  [終日]│
 │ 6月12日    6月12日  オン│
 │──────────────────────────│
-│ 🗓 色・カレンダー        │
-│   ● プライベート    ✓   │
+│ カラー          [カラー編集]│  ← 「カラー編集」ボタン → /color-labels
+│ ● ● ● ● ● ● ● ● ● ●  │  ← プリセットカラー（EVENT_COLORS）
+│                          │
+│ マイカラー               │  ← カラーラベル登録済みの場合のみ表示
+│ ●仕事 ●趣味 ...          │  ← 色丸＋名称付き
 │──────────────────────────│
 │    詳細を表示             │
 │──────────────────────────│
 │ （展開後）               │
 │ 📍 場所                  │
 │ 💬 メモ                  │
+│──────────────────────────│
+│ [        保存        ]   │  ← フォーム下部の保存ボタン
 └──────────────────────────┘
 ```
 
@@ -427,22 +450,27 @@ page.tsx
 └── EventForm（新規モード）
     ├── ヘッダー
     │   ├── <button> × ──▶ /（キャンセル）
-    │   └── <button> 保存
+    │   └── <button> 保存（ヘッダー右端）
     ├── <input> タイトル（予定名・大きめフォント）
     ├── DateTimeSection
     │   ├── 開始日時ピッカー
     │   ├── 終了日時ピッカー
     │   └── Toggle（終日オン/オフ）
-    ├── ColorSection（色丸 + 「プライベート」固定表示）
-    │   └── ColorPicker（プリセットカラー選択）
-    └── DetailSection（「詳細を表示」トグル）
-        ├── <input> 場所（最大200文字）
-        └── <textarea> メモ
+    ├── ColorSection
+    │   ├── ラベル「カラー」+ <Link href="/color-labels"> カラー編集
+    │   ├── ColorPicker（EVENT_COLORS プリセット）
+    │   └── マイカラー欄（colorLabels.length > 0 のとき表示）
+    │       └── カラーボタン × ラベル数分（色丸＋名称）
+    ├── DetailSection（「詳細を表示」トグル）
+    │   ├── <input> 場所（最大200文字）
+    │   └── <textarea> メモ
+    └── <button> 保存（フォーム下部・非readOnlyのみ）
 ```
 
 **状態管理**
 
 - `groupId: string | undefined` URLクエリパラメータ `?groupId=xxx` から取得。`GET /calendars?groupId=xxx` でそのグループのカレンダーのみ取得し使用する
+- `colorLabels: ColorLabel[]` 初期化時に `GET /color-labels` で取得
 - `isAllDay: boolean`（デフォルト: true）
 - `showDetail: boolean`（「詳細を表示」開閉）
 - 保存成功 → `/`（選択日付のドロワー展開状態で戻る）
@@ -460,7 +488,9 @@ page.tsx
 │ ×  予定編集        [保存]│
 │  ...（画面6と同じ）...   │
 │──────────────────────────│
-│ [削除する]               │  ← 追加: 削除ボタン（赤）
+│ [        保存        ]   │  ← フォーム下部の保存ボタン（作成者のみ）
+│──────────────────────────│
+│ [削除する]               │  ← 削除ボタン（赤・作成者のみ）
 └──────────────────────────┘
 ```
 
@@ -470,7 +500,8 @@ page.tsx
 page.tsx（サーバーコンポーネント: イベント取得・権限チェック）
 └── EventForm（編集モード）
     ├── （画面6と同じフォーム要素）
-    └── <button> 削除する（赤・確認ダイアログあり）
+    ├── <button> 保存（フォーム下部・作成者のみ）
+    └── <button> 削除する（赤・確認ダイアログあり・作成者のみ）
 ```
 
 **状態・権限**
@@ -496,14 +527,13 @@ page.tsx（サーバーコンポーネント: イベント取得・権限チェ�
 │─────────────────────────│
 │  1   2   3   4   5  6   │
 │  1  ①  3   6   1  ●   │  ← ShiftCell（filteredShifts を表示）
-│                      🔧  │  ← パターン管理ボタン → /work/patterns
 │─────────────── パネル ──│  ← ShiftSelectPanel（日付タップ時）
 │ 6月12日                  │
 │ 自分のシフト:             │
 │ ┌────┐ ┌────┐ ┌────┐ │
 │ │  1  │ │  3  │ │振休 │ │  ← シフットパターン選択グリッド
 │ └────┘ └────┘ └────┘ │
-└──────────────────────────┘
+│                      🔧  │  ← パターン管理ボタン（fixed・フッター上・右端）
 │ 🏠 プライベート  💼 仕事  │  ← BottomNav
 └──────────────────────────┘
 ```
@@ -515,13 +545,16 @@ page.tsx
 ├── CalendarHeader（共通コンポーネント）
 │   └── メンバー絞り込みセレクトボックス（「全員」＋グループメンバー一覧）
 │
-├── WorkCalendarGrid
-│   └── ShiftCell × 日数分（filteredShifts を受け取る）
-│       └── ShiftBadge × メンバー数分
-│           ├── パターン名称（例: 1, 振休）
-│           └── カラードット or 背景色
+├── MonthSlider（css scroll-snap・前月/現在月/次月を縦並びで保持）
+│   ├── WorkCalendarGrid（前月・データなし）
+│   ├── WorkCalendarGrid（現在月・filteredShifts）
+│   └── WorkCalendarGrid（次月・データなし）
+│       └── ShiftCell × 日数分（filteredShifts を受け取る）
+│           └── ShiftBadge × メンバー数分
+│               ├── パターン名称（例: 1, 振休）
+│               └── カラードット or 背景色
 │
-├── パターン管理ボタン（🔧） ──▶ /work/patterns
+├── パターン管理ボタン（🔧・fixed・フッター上12px・右端16px） ──▶ /work/patterns
 │
 └── ShiftSelectPanel（selectedDate != null のとき表示）
     ├── 日付ヘッダー + 閉じるボタン
@@ -547,6 +580,13 @@ page.tsx
 - `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
 
+**縦スクロール操作**
+
+- `MonthSlider` が前月・現在月・次月を縦に並べて保持（`scroll-snap-type: y mandatory`）
+- 下スクロール → 次月、上スクロール → 前月
+- スナップ完了後に月状態を更新し、スクロール位置を中央に自動リセット
+- ‹ › ボタンでも月移動可能
+
 **絞り込みロジック**
 
 - 「全員」選択時（`selectedMemberId === ''`）: 全シフトを表示
@@ -571,6 +611,8 @@ page.tsx
 │ ③             7:45-16:30 ›│
 │ 3             7:45-16:30 ›│
 │ ...                      │
+│──────────────────────────│
+│ [＋ 追加                ]│  ← 青背景の追加ボタン
 └──────────────────────────┘
 ```
 
@@ -581,12 +623,13 @@ page.tsx
 └── ShiftPatternList
     ├── ヘッダー
     │   ├── <Link href="/work"> ‹ 戻る
-    │   └── <Link href="/work/patterns/new"> ＋ 新規作成
-    └── パターン行 × パターン数分（sort_order昇順）
-        ├── カラードット
-        ├── パターン名称（色付き文字）
-        ├── 時刻表示（HH:MM - HH:MM / 休日）
-        └── › ──▶ /work/patterns/[id]
+    │   └── <Link href="/work/patterns/new"> ＋（ヘッダー右端）
+    ├── パターン行 × パターン数分（sort_order昇順）
+    │   ├── カラードット
+    │   ├── パターン名称（色付き文字）
+    │   ├── 時刻表示（HH:MM - HH:MM / 休日）
+    │   └── › ──▶ /work/patterns/[id]
+    └── <Link href="/work/patterns/new"> ＋ 追加（リスト下部・青ボタン）
 ```
 
 ---
@@ -610,6 +653,7 @@ page.tsx
 │ 勤務時間        7:45     │  ← 自動計算（読み取り専用）
 │ 休日                 ◯  │
 │──────────────────────────│
+│ [        保存        ]   │  ← フォーム下部の保存ボタン
 │ （編集モードのみ）        │
 │ [このパターンを削除]       │  ← 赤テキスト
 └──────────────────────────┘
@@ -622,7 +666,7 @@ page.tsx
 └── ShiftPatternForm
     ├── ヘッダー
     │   ├── <Link href="/work/patterns"> ‹ 戻る
-    │   └── <button> 保存
+    │   └── <button> 保存（ヘッダー右端）
     ├── NameSection
     │   ├── <input> 表示名称
     │   └── ColorPicker（表示色変更）
@@ -632,6 +676,7 @@ page.tsx
     │   ├── TimePicker 休憩時間
     │   └── 勤務時間（自動計算: 終了-開始-休憩）
     ├── Toggle 休日フラグ
+    ├── <button> 保存（フォーム下部）
     └── <button> 削除する（赤・編集モードのみ）
 ```
 
@@ -814,6 +859,92 @@ MemberDetailModal
 | `onClose` | () => void | 閉じるコールバック |
 | `onMemoSaved` | (memo: string) => void? | メモ保存後コールバック |
 | `onMemberRemoved` | () => void? | 退会処理後コールバック |
+
+---
+
+### 画面16: カラー編集 `/color-labels`
+
+**目的**: イベントに使用するカラーラベル（色と名称のペア）を管理する
+
+**遷移元**: イベント作成・編集画面のカラーセクション「カラー編集」ボタン
+
+**レイアウト**
+
+```
+┌──────────────────────────┐
+│ ‹  カラー編集             │
+│──────────────────────────│
+│ デフォルトカラー          │  ← EVENT_COLORS の10色
+│ 名称を入力して保存すると、 │
+│ 予定作成時に名前付き表示  │
+│                          │
+│ ● [仕事        ] [保存][削除]│  ← 名称あり → 削除ボタン表示
+│ ● [            ] [保存]  │  ← 名称なし → 削除ボタン非表示
+│ ● [プライベート] [保存][削除]│
+│  ...（10色分）            │
+│──────────────────────────│
+│ カスタムカラーを追加      │
+│ カラー: ● ● ● ● ...     │  ← カラースウォッチ
+│ 名称: [______________]   │
+│ [追加]                   │
+│──────────────────────────│
+│ カスタムカラー一覧        │  ← 非デフォルト色のラベルのみ表示
+│ ● 会議    [編集][削除]   │
+│ ● 習い事  [編集][削除]   │
+│   （編集展開時）          │
+│   カラー: ● ● ...       │
+│   名称: [______________] │
+│   [キャンセル][保存]     │
+│   [削除する]             │  ← 編集フォーム内の削除ボタン
+└──────────────────────────┘
+```
+
+**コンポーネント構成**
+
+```
+app/(app)/color-labels/page.tsx（インライン実装）
+├── ヘッダー
+│   └── <button> ‹ 戻る（router.back()）
+├── デフォルトカラーセクション
+│   └── 各色の行（EVENT_COLORS × 10）
+│       ├── 色丸（24px）
+│       ├── <input> 名称（最大30文字・既存ラベルがあればプリフィル）
+│       ├── <button> 保存（作成 or 更新）
+│       └── <button> 削除（名称が保存済みの場合のみ表示）
+├── カスタムカラー追加フォーム
+│   ├── ColorSwatches（10色パレット）
+│   ├── <input> 名称（最大30文字）
+│   └── <button> 追加
+└── カスタムカラー一覧（非EVENT_COLORS のラベルのみ）
+    └── 各ラベルの行
+        ├── 通常表示: 色丸＋名称＋編集ボタン＋削除ボタン
+        └── 編集展開時: ColorSwatches＋名称入力＋キャンセル＋保存＋削除する
+```
+
+**状態管理**
+
+- `labels: ColorLabel[]` `GET /color-labels` で取得（全ラベル）
+- `defaultNames: Record<string, string>` デフォルトカラーの名称入力値（hex → name）
+- `defaultSaving: string | null` 保存中のデフォルトカラーのhex
+- `addName / addColor` 追加フォームの入力値
+- `editId / editName / editColor` カスタムカラーのインライン編集状態
+
+**カラーラベル保存ロジック**
+
+| 操作 | 条件 | API呼び出し |
+|------|------|------------|
+| デフォルト保存 | 既存ラベルなし・名称あり | `POST /color-labels` |
+| デフォルト保存 | 既存ラベルあり・名称あり | `PATCH /color-labels/:id` |
+| デフォルト削除 | 削除ボタン押下 | `DELETE /color-labels/:id` → 入力フィールドクリア |
+| カスタム追加 | 名称あり | `POST /color-labels` |
+| カスタム更新 | 編集フォーム保存 | `PATCH /color-labels/:id` |
+| カスタム削除 | 表示行 or 編集フォームの削除ボタン | `DELETE /color-labels/:id` |
+
+**表示分類ロジック**
+
+- `defaultHexSet` = `EVENT_COLORS` を大文字で Set 化
+- `customLabels` = `labels.filter(l => !defaultHexSet.has(l.color.toUpperCase()))`
+- デフォルトカラーの名称は `labels.find(l => l.color.toUpperCase() === color.toUpperCase())` で照合
 
 ---
 

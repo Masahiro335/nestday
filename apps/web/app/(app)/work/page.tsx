@@ -6,6 +6,7 @@ import CalendarHeader from '@/components/calendar/CalendarHeader';
 import WorkCalendarGrid from '@/components/work/WorkCalendarGrid';
 import ShiftSelectPanel from '@/components/work/ShiftSelectPanel';
 import GroupSheet from '@/components/ui/GroupSheet';
+import MonthSlider from '@/components/ui/MonthSlider';
 import { useShifts, useShiftPatterns } from '@/hooks/use-shifts';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
 import { createClient } from '@/lib/supabase';
@@ -55,7 +56,7 @@ export default function WorkCalendarPage() {
 
   function handlePrev() {
     if (month === 1) { setYear((y) => y - 1); setMonth(12); }
-    else setMonth((m) => m + -1);
+    else setMonth((m) => m - 1);
   }
   function handleNext() {
     if (month === 12) { setYear((y) => y + 1); setMonth(1); }
@@ -89,21 +90,16 @@ export default function WorkCalendarPage() {
         onMemberChange={setSelectedMemberId}
       />
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '4px 12px' }}>
-        <Link
-          href="/work/patterns"
-          style={{ fontSize: 13, color: '#6b7280', padding: '4px 8px', border: '1px solid #e5e7eb', borderRadius: 6 }}
-        >
-          🔧 パターン管理
-        </Link>
-      </div>
-
-      <WorkCalendarGrid
-        year={year}
-        month={month}
-        shifts={filteredShifts}
-        onSelectDate={setSelectedDate}
-      />
+      <MonthSlider year={year} month={month} onPrev={handlePrev} onNext={handleNext}>
+        {(y, m, isCurrent) => (
+          <WorkCalendarGrid
+            year={y}
+            month={m}
+            shifts={isCurrent ? filteredShifts : []}
+            onSelectDate={isCurrent ? setSelectedDate : () => {}}
+          />
+        )}
+      </MonthSlider>
 
       <ShiftSelectPanel
         isOpen={!!selectedDate}
@@ -121,6 +117,26 @@ export default function WorkCalendarPage() {
         onSelect={handleSelectGroup}
         onClose={() => setShowGroupSheet(false)}
       />
+
+      {/* パターン管理ボタン（フッター上・右端） */}
+      <Link
+        href="/work/patterns"
+        style={{
+          position: 'fixed',
+          bottom: 'calc(var(--bottom-nav-height) + 12px)',
+          right: 16,
+          fontSize: 13,
+          color: '#6b7280',
+          padding: '6px 10px',
+          border: '1px solid #e5e7eb',
+          borderRadius: 8,
+          background: '#fff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          zIndex: 20,
+        }}
+      >
+        🔧 パターン管理
+      </Link>
     </div>
   );
 }

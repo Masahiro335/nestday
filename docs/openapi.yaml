@@ -698,6 +698,157 @@ paths:
         '500':
           description: Server error
 
+  /color-labels:
+    get:
+      summary: Get current user's color labels
+      tags:
+        - ColorLabels
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of color labels sorted by sortOrder
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ColorLabel'
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Create a color label
+      tags:
+        - ColorLabels
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 30
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                sortOrder:
+                  type: integer
+                  default: 0
+              required:
+                - name
+                - color
+      responses:
+        '201':
+          description: Color label created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorLabel'
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized
+
+  /color-labels/{id}:
+    get:
+      summary: Get a color label by ID (owner only)
+      tags:
+        - ColorLabels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Color label detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorLabel'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not label owner
+        '404':
+          description: Color label not found
+
+    patch:
+      summary: Update a color label (owner only)
+      tags:
+        - ColorLabels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 30
+                color:
+                  type: string
+                  pattern: '^#[0-9A-Fa-f]{6}$'
+                sortOrder:
+                  type: integer
+      responses:
+        '200':
+          description: Color label updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ColorLabel'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not label owner
+        '404':
+          description: Color label not found
+
+    delete:
+      summary: Delete a color label (owner only)
+      tags:
+        - ColorLabels
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Color label deleted
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not label owner
+        '404':
+          description: Color label not found
+
   /shift-patterns:
     get:
       summary: Get current user's shift patterns
@@ -1182,6 +1333,38 @@ components:
         - name
         - color
         - isDayOff
+        - sortOrder
+        - createdAt
+        - updatedAt
+
+    ColorLabel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 30
+        color:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - userId
+        - name
+        - color
         - sortOrder
         - createdAt
         - updatedAt

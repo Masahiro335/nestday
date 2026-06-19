@@ -7,6 +7,7 @@ import CalendarGrid from '@/components/calendar/CalendarGrid';
 import DayDrawer from '@/components/calendar/DayDrawer';
 import FAB from '@/components/ui/FAB';
 import GroupSheet from '@/components/ui/GroupSheet';
+import MonthSlider from '@/components/ui/MonthSlider';
 import { useEvents } from '@/hooks/use-events';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
 import { createClient } from '@/lib/supabase';
@@ -117,12 +118,18 @@ export default function PrivateCalendarPage() {
         selectedMemberId={selectedMemberId}
         onMemberChange={setSelectedMemberId}
       />
-      <CalendarGrid
-        year={year}
-        month={month}
-        events={filteredEvents}
-        onSelectDate={setSelectedDate}
-      />
+
+      <MonthSlider year={year} month={month} onPrev={handlePrev} onNext={handleNext}>
+        {(y, m, isCurrent) => (
+          <CalendarGrid
+            year={y}
+            month={m}
+            events={isCurrent ? filteredEvents : []}
+            onSelectDate={isCurrent ? setSelectedDate : () => {}}
+          />
+        )}
+      </MonthSlider>
+
       <DayDrawer
         isOpen={!!selectedDate}
         date={selectedDate}
