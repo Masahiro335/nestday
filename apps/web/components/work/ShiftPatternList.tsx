@@ -157,12 +157,6 @@ export default function ShiftPatternList({ patterns, onReordered }: ShiftPattern
       {patterns.length === 0 ? (
         <div style={{ padding: 32, textAlign: 'center', color: '#9ca3af' }}>
           <p>パターンがありません</p>
-          <Link
-            href="/work/patterns/new"
-            style={{ color: '#3b82f6', fontSize: 14, marginTop: 8, display: 'inline-block' }}
-          >
-            最初のパターンを作成する
-          </Link>
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -175,6 +169,26 @@ export default function ShiftPatternList({ patterns, onReordered }: ShiftPattern
           </SortableContext>
         </DndContext>
       )}
+
+      <div style={{ padding: '16px' }}>
+        <Link
+          href="/work/patterns/new"
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '14px',
+            background: '#3b82f6',
+            color: '#fff',
+            fontSize: 16,
+            fontWeight: 600,
+            borderRadius: 8,
+            textAlign: 'center',
+            textDecoration: 'none',
+          }}
+        >
+          ＋ 追加
+        </Link>
+      </div>
     </div>
   );
 }

@@ -589,6 +589,8 @@ page.tsx
 │ ③             7:45-16:30 ›│
 │ 3             7:45-16:30 ›│
 │ ...                      │
+│──────────────────────────│
+│ [＋ 追加                ]│  ← 青背景の追加ボタン
 └──────────────────────────┘
 ```
 
@@ -599,12 +601,13 @@ page.tsx
 └── ShiftPatternList
     ├── ヘッダー
     │   ├── <Link href="/work"> ‹ 戻る
-    │   └── <Link href="/work/patterns/new"> ＋ 新規作成
-    └── パターン行 × パターン数分（sort_order昇順）
-        ├── カラードット
-        ├── パターン名称（色付き文字）
-        ├── 時刻表示（HH:MM - HH:MM / 休日）
-        └── › ──▶ /work/patterns/[id]
+    │   └── <Link href="/work/patterns/new"> ＋（ヘッダー右端）
+    ├── パターン行 × パターン数分（sort_order昇順）
+    │   ├── カラードット
+    │   ├── パターン名称（色付き文字）
+    │   ├── 時刻表示（HH:MM - HH:MM / 休日）
+    │   └── › ──▶ /work/patterns/[id]
+    └── <Link href="/work/patterns/new"> ＋ 追加（リスト下部・青ボタン）
 ```
 
 ---
