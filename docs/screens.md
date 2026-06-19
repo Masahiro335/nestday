@@ -359,11 +359,12 @@ page.tsx
 │   ├── メンバー絞り込みセレクトボックス        ← 「全員」＋グループメンバー一覧
 │   └── 曜日ヘッダー（日〜土）
 │
-├── CalendarGrid
-│   └── DayCell × 日数分
-│       ├── 日付数字（今日はハイライト）
-│       └── EventBadge × イベント数分（filteredEvents を表示）
-│           └── タイトル・背景色
+├── スライドコンテナ（overflow:hidden・タッチスワイプ検出）
+│   └── CalendarGrid（key={year-month}・スライドアニメーション）
+│       └── DayCell × 日数分
+│           ├── 日付数字（今日はハイライト）
+│           └── EventBadge × イベント数分（filteredEvents を表示）
+│               └── タイトル・背景色
 │
 ├── DayDrawer（selectedDate != null のとき表示）
 │   ├── ドラッグハンドル
@@ -385,12 +386,20 @@ page.tsx
 
 - `selectedDate: string | null` 選択日付
 - `month: { year, month }` 表示月
+- `slideDir: 'next' | 'prev' | null` スライドアニメーション方向（次月=右から、前月=左から）
 - `events: Event[]` SWRでフェッチ（`groupId` クエリで選択グループに絞り込み）
 - `filteredEvents: Event[]` `selectedMemberId` で `event.createdBy` を絞り込んだ結果（全員選択時は `events` と同一）
 - `selectedGroupId: string | null` 選択グループID（localStorage で永続化）
 - `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
 - `showGroupSheet: boolean` グループ切替シート表示状態
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
+
+**スライド操作**
+
+- ヘッダーの ‹ › ボタンまたは左右スワイプで月移動
+- 次月へ: カレンダーが右から左へスライドイン（`slide-from-right` アニメーション）
+- 前月へ: カレンダーが左から右へスライドイン（`slide-from-left` アニメーション）
+- `useSwipe` フック（`hooks/use-swipe.ts`）でタッチイベントを検出（閾値 50px）
 
 **絞り込みロジック**
 
@@ -533,11 +542,12 @@ page.tsx
 ├── CalendarHeader（共通コンポーネント）
 │   └── メンバー絞り込みセレクトボックス（「全員」＋グループメンバー一覧）
 │
-├── WorkCalendarGrid
-│   └── ShiftCell × 日数分（filteredShifts を受け取る）
-│       └── ShiftBadge × メンバー数分
-│           ├── パターン名称（例: 1, 振休）
-│           └── カラードット or 背景色
+├── スライドコンテナ（overflow:hidden・タッチスワイプ検出）
+│   └── WorkCalendarGrid（key={year-month}・スライドアニメーション）
+│       └── ShiftCell × 日数分（filteredShifts を受け取る）
+│           └── ShiftBadge × メンバー数分
+│               ├── パターン名称（例: 1, 振休）
+│               └── カラードット or 背景色
 │
 ├── パターン管理ボタン（🔧・fixed・フッター上12px・右端16px） ──▶ /work/patterns
 │
@@ -559,11 +569,17 @@ page.tsx
 
 - `selectedDate: string | null`
 - `month: { year, month }`
+- `slideDir: 'next' | 'prev' | null` スライドアニメーション方向
 - `shifts: Shift[]` SWRでフェッチ（全メンバー分・フィルタ前の生データ）
 - `filteredShifts: Shift[]` `selectedMemberId` で `shift.userId` を絞り込んだ結果（全員選択時は `shifts` と同一）
 - `myPatterns: ShiftPattern[]` SWRでフェッチ
 - `selectedMemberId: string` 絞り込み対象メンバーID（`''` = 全員）
 - `members` 選択グループの `members` 配列（`useGroups()` から取得）
+
+**スライド操作**
+
+- ヘッダーの ‹ › ボタンまたは左右スワイプで月移動
+- `useSwipe` フック（`hooks/use-swipe.ts`）でタッチイベントを検出（閾値 50px）
 
 **絞り込みロジック**
 

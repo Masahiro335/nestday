@@ -9,6 +9,7 @@ import FAB from '@/components/ui/FAB';
 import GroupSheet from '@/components/ui/GroupSheet';
 import { useEvents } from '@/hooks/use-events';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
+import { useSwipe } from '@/hooks/use-swipe';
 import { createClient } from '@/lib/supabase';
 import api from '@/lib/api';
 
@@ -27,6 +28,7 @@ export default function PrivateCalendarPage() {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
+  const [slideDir, setSlideDir] = useState<'next' | 'prev' | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | undefined>();
   const [membersMap, setMembersMap] = useState<Record<string, string>>({});
@@ -79,14 +81,18 @@ export default function PrivateCalendarPage() {
   }
 
   function handlePrev() {
+    setSlideDir('prev');
     if (month === 1) { setYear((y) => y - 1); setMonth(12); }
     else setMonth((m) => m - 1);
   }
 
   function handleNext() {
+    setSlideDir('next');
     if (month === 12) { setYear((y) => y + 1); setMonth(1); }
     else setMonth((m) => m + 1);
   }
+
+  const { onTouchStart, onTouchEnd } = useSwipe(handleNext, handlePrev);
 
   const selectedGroup = groups.find((g) => g.id === selectedGroupId);
   const members = selectedGroup?.members ?? [];
@@ -117,12 +123,27 @@ export default function PrivateCalendarPage() {
         selectedMemberId={selectedMemberId}
         onMemberChange={setSelectedMemberId}
       />
-      <CalendarGrid
-        year={year}
-        month={month}
-        events={filteredEvents}
-        onSelectDate={setSelectedDate}
-      />
+      <div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        style={{ flex: 1, overflow: 'hidden' }}
+      >
+        <div
+          key={`${year}-${month}`}
+          style={{
+            height: '100%',
+            animation: slideDir === 'next' ? 'slide-from-right 0.25s ease' :
+                       slideDir === 'prev' ? 'slide-from-left 0.25s ease' : undefined,
+          }}
+        >
+          <CalendarGrid
+            year={year}
+            month={month}
+            events={filteredEvents}
+            onSelectDate={setSelectedDate}
+          />
+        </div>
+      </div>
       <DayDrawer
         isOpen={!!selectedDate}
         date={selectedDate}
