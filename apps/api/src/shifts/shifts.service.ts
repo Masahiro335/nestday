@@ -27,7 +27,7 @@ export class ShiftsService {
       where: { userId },
     });
     if (!membership) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
     return membership.groupId;
   }
@@ -37,7 +37,7 @@ export class ShiftsService {
       where: { userId },
     });
     if (memberships.length === 0) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
     return memberships.map((m) => m.groupId);
   }
@@ -97,7 +97,7 @@ export class ShiftsService {
       },
     });
     if (!shift) {
-      throw new NotFoundException('Shift not found');
+      throw new NotFoundException('シフトが見つかりません');
     }
     await this.prisma.shift.delete({
       where: { userId_date: { userId: currentUser.id, date: parsedDate } },

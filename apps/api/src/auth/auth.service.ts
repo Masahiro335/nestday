@@ -30,7 +30,7 @@ export class AuthService {
     if (error) {
       // Supabase returns "User already registered" for duplicate emails
       if (error.message.toLowerCase().includes('already')) {
-        throw new BadRequestException('Email already in use');
+        throw new BadRequestException('このメールアドレスはすでに使用されています');
       }
       throw new BadRequestException(error.message);
     }
@@ -60,7 +60,7 @@ export class AuthService {
     });
 
     if (error || !data.session) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('メールアドレスまたはパスワードが正しくありません');
     }
 
     const user = await this.prisma.user.findUnique({
@@ -68,7 +68,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('ユーザーが見つかりません');
     }
 
     return {

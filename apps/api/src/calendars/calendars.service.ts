@@ -13,7 +13,7 @@ export class CalendarsService {
       where: { userId },
     });
     if (!membership) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
     return membership.groupId;
   }
@@ -23,7 +23,7 @@ export class CalendarsService {
       where: { userId },
     });
     if (memberships.length === 0) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
     return memberships.map((m) => m.groupId);
   }
@@ -44,7 +44,7 @@ export class CalendarsService {
     if (dto.groupId) {
       const groupIds = await this.getGroupIds(currentUser.id);
       if (!groupIds.includes(dto.groupId)) {
-        throw new ForbiddenException('Not a member of this group');
+        throw new ForbiddenException('このグループのメンバーではありません');
       }
       groupId = dto.groupId;
     } else {
@@ -64,7 +64,7 @@ export class CalendarsService {
     await this.getGroupId(currentUser.id);
     const calendar = await this.prisma.calendar.findUnique({ where: { id } });
     if (!calendar) {
-      throw new NotFoundException('Calendar not found');
+      throw new NotFoundException('カレンダーが見つかりません');
     }
     return this.prisma.calendar.update({
       where: { id },
@@ -79,7 +79,7 @@ export class CalendarsService {
     await this.getGroupId(currentUser.id);
     const calendar = await this.prisma.calendar.findUnique({ where: { id } });
     if (!calendar) {
-      throw new NotFoundException('Calendar not found');
+      throw new NotFoundException('カレンダーが見つかりません');
     }
     await this.prisma.calendar.delete({ where: { id } });
   }

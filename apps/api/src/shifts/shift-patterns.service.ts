@@ -34,10 +34,10 @@ export class ShiftPatternsService {
   async findOne(id: string, currentUser: User) {
     const pattern = await this.prisma.shiftPattern.findUnique({ where: { id } });
     if (!pattern) {
-      throw new NotFoundException('ShiftPattern not found');
+      throw new NotFoundException('シフトパターンが見つかりません');
     }
     if (pattern.userId !== currentUser.id) {
-      throw new ForbiddenException('You can only view your own shift patterns');
+      throw new ForbiddenException('自分のシフトパターンのみ参照できます');
     }
     return pattern;
   }
@@ -45,10 +45,10 @@ export class ShiftPatternsService {
   async update(id: string, dto: UpdateShiftPatternDto, currentUser: User) {
     const pattern = await this.prisma.shiftPattern.findUnique({ where: { id } });
     if (!pattern) {
-      throw new NotFoundException('ShiftPattern not found');
+      throw new NotFoundException('シフトパターンが見つかりません');
     }
     if (pattern.userId !== currentUser.id) {
-      throw new ForbiddenException('You can only update your own shift patterns');
+      throw new ForbiddenException('自分のシフトパターンのみ更新できます');
     }
     return this.prisma.shiftPattern.update({
       where: { id },
@@ -67,10 +67,10 @@ export class ShiftPatternsService {
   async remove(id: string, currentUser: User) {
     const pattern = await this.prisma.shiftPattern.findUnique({ where: { id } });
     if (!pattern) {
-      throw new NotFoundException('ShiftPattern not found');
+      throw new NotFoundException('シフトパターンが見つかりません');
     }
     if (pattern.userId !== currentUser.id) {
-      throw new ForbiddenException('You can only delete your own shift patterns');
+      throw new ForbiddenException('自分のシフトパターンのみ削除できます');
     }
     await this.prisma.shiftPattern.delete({ where: { id } });
   }
