@@ -57,7 +57,8 @@ export default function ProfileSettingsPage() {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (e: unknown) {
-      const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+      const raw = (e as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      const msg = Array.isArray(raw) ? raw[0] : raw;
       setSaveError(msg ?? '保存に失敗しました');
     } finally {
       setSaving(false);
