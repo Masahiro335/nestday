@@ -1,19 +1,19 @@
 import { useRef } from 'react';
 import type React from 'react';
 
-export function useSwipe(onSwipeLeft: () => void, onSwipeRight: () => void, threshold = 50) {
-  const startX = useRef<number | null>(null);
+export function useSwipe(onSwipeUp: () => void, onSwipeDown: () => void, threshold = 50) {
+  const startY = useRef<number | null>(null);
 
   function onTouchStart(e: React.TouchEvent) {
-    startX.current = e.touches[0].clientX;
+    startY.current = e.touches[0].clientY;
   }
 
   function onTouchEnd(e: React.TouchEvent) {
-    if (startX.current === null) return;
-    const diff = startX.current - e.changedTouches[0].clientX;
-    if (diff > threshold) onSwipeLeft();
-    else if (diff < -threshold) onSwipeRight();
-    startX.current = null;
+    if (startY.current === null) return;
+    const diff = startY.current - e.changedTouches[0].clientY;
+    if (diff > threshold) onSwipeUp();
+    else if (diff < -threshold) onSwipeDown();
+    startY.current = null;
   }
 
   return { onTouchStart, onTouchEnd };

@@ -132,8 +132,8 @@ export default function PrivateCalendarPage() {
           key={`${year}-${month}`}
           style={{
             height: '100%',
-            animation: slideDir === 'next' ? 'slide-from-right 0.25s ease' :
-                       slideDir === 'prev' ? 'slide-from-left 0.25s ease' : undefined,
+            animation: slideDir === 'next' ? 'slide-from-bottom 0.25s ease' :
+                       slideDir === 'prev' ? 'slide-from-top 0.25s ease' : undefined,
           }}
         >
           <CalendarGrid
