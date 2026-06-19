@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Patch, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -23,5 +23,12 @@ export class UsersController {
   @ApiOperation({ summary: 'Update current user profile' })
   updateMe(@CurrentUser() user: User, @Body() dto: UpdateProfileDto) {
     return this.usersService.updateMe(user, dto);
+  }
+
+  @Delete('me')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete current user account' })
+  deleteMe(@CurrentUser() user: User) {
+    return this.usersService.deleteMe(user);
   }
 }

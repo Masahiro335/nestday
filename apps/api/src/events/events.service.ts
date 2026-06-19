@@ -15,7 +15,7 @@ export class EventsService {
       where: { userId },
     });
     if (memberships.length === 0) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
     return memberships.map((m) => m.groupId);
   }
@@ -23,13 +23,13 @@ export class EventsService {
   /** グループ所属チェックのみ（グループ内外は問わない） */
   private async requireGroupMembership(userId: string): Promise<void> {
     const count = await this.prisma.groupMember.count({ where: { userId } });
-    if (count === 0) throw new NotFoundException('Group not found');
+    if (count === 0) throw new NotFoundException('グループが見つかりません');
   }
 
   async findOne(id: string, currentUser: User) {
     await this.requireGroupMembership(currentUser.id);
     const event = await this.prisma.event.findUnique({ where: { id } });
-    if (!event) throw new NotFoundException('Event not found');
+    if (!event) throw new NotFoundException('イベントが見つかりません');
     return event;
   }
 
@@ -53,11 +53,11 @@ export class EventsService {
 
   async create(dto: CreateEventDto, currentUser: User) {
     const calendar = await this.prisma.calendar.findUnique({ where: { id: dto.calendarId } });
-    if (!calendar) throw new BadRequestException('Calendar not found');
+    if (!calendar) throw new BadRequestException('カレンダーが見つかりません');
 
     const groupIds = await this.getGroupIds(currentUser.id);
     if (!groupIds.includes(calendar.groupId)) {
-      throw new ForbiddenException('Not a member of this group');
+      throw new ForbiddenException('このグループのメンバーではありません');
     }
 
     return this.prisma.event.create({
@@ -79,10 +79,10 @@ export class EventsService {
   async update(id: string, dto: UpdateEventDto, currentUser: User) {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) {
-      throw new NotFoundException('Event not found');
+      throw new NotFoundException('イベントが見つかりません');
     }
     if (event.createdBy !== currentUser.id) {
-      throw new ForbiddenException('You can only edit your own events');
+      throw new ForbiddenException('自分が作成したイベントのみ編集できます');
     }
     return this.prisma.event.update({
       where: { id },
@@ -101,10 +101,10 @@ export class EventsService {
   async remove(id: string, currentUser: User) {
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) {
-      throw new NotFoundException('Event not found');
+      throw new NotFoundException('イベントが見つかりません');
     }
     if (event.createdBy !== currentUser.id) {
-      throw new ForbiddenException('You can only delete your own events');
+      throw new ForbiddenException('自分が作成したイベントのみ削除できます');
     }
     await this.prisma.event.delete({ where: { id } });
   }

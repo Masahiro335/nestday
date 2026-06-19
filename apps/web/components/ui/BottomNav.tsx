@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 
 const settingsMenu = [
-  { href: '/settings', label: 'グループ', icon: '👥' },
-  { href: '/settings/profile', label: 'プロフィール', icon: '👤' },
-  { href: '/settings/account', label: 'アカウント', icon: '🔐' },
+  { href: '/groups-settings', label: 'グループ', icon: '👥' },
+  { href: '/groups-settings/profile', label: 'プロフィール', icon: '👤' },
+  { href: '/groups-settings/account', label: 'アカウント', icon: '🔐' },
 ];
 
 const tabs = [
@@ -20,7 +20,7 @@ export default function BottomNav() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
 
-  const isSettingsActive = pathname.startsWith('/settings');
+  const isSettingsActive = pathname.startsWith('/groups-settings');
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

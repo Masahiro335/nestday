@@ -106,7 +106,7 @@ paths:
           description: Unauthorized
 
     patch:
-      summary: Update current user profile (name / memo)
+      summary: Update current user profile (name / email / password / memo)
       tags:
         - Users
       security:
@@ -121,6 +121,16 @@ paths:
                 name:
                   type: string
                   maxLength: 50
+                email:
+                  type: string
+                  format: email
+                  description: メールアドレスを変更する場合のみ指定
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  maxLength: 100
+                  description: パスワードを変更する場合のみ指定
                 memo:
                   type: string
                   maxLength: 200
@@ -135,6 +145,28 @@ paths:
           description: Invalid input
         '401':
           description: Unauthorized
+        '409':
+          description: Email already in use by another account
+
+    delete:
+      summary: Delete current user account
+      description: |
+        ログイン中のユーザーのアカウントを削除する。
+        グループオーナーの場合は削除不可（403）。
+        削除後は全グループのメンバーシップも削除される。
+      tags:
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Account deleted successfully
+        '400':
+          description: Cannot delete — user is a group owner
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
 
   /groups:
     get:
@@ -259,6 +291,36 @@ paths:
           description: Invalid invite token
         '409':
           description: User already in this group
+        '500':
+          description: Server error
+
+  /groups/{groupId}:
+    delete:
+      summary: Dissolve a group (owner only)
+      description: |
+        グループオーナーのみグループを解散できる。
+        解散するとグループ内の全データ（メンバーシップ・カレンダー・イベント・シフト）が削除される。
+        この操作は取り消せない。
+      tags:
+        - Groups
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Group dissolved successfully
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - not the group owner
+        '404':
+          description: Group not found
         '500':
           description: Server error
 

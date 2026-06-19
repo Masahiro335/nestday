@@ -43,6 +43,16 @@ export class GroupsController {
     return this.groupsService.joinGroup(token, user);
   }
 
+  @Delete(':groupId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Dissolve a group (owner only)' })
+  dissolveGroup(
+    @Param('groupId') groupId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.groupsService.dissolveGroup(groupId, user);
+  }
+
   @Delete(':groupId/members/:userId')
   @HttpCode(204)
   @ApiOperation({ summary: 'Remove a member from a group (owner only)' })

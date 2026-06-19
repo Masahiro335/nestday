@@ -53,7 +53,7 @@ export class GroupsService {
       where: { userId: currentUser.id },
     });
     if (!membership) {
-      throw new NotFoundException('Group not found');
+      throw new NotFoundException('グループが見つかりません');
     }
 
     const group = await this.prisma.group.findUnique({
@@ -69,7 +69,7 @@ export class GroupsService {
       include: { _count: { select: { members: true } } },
     });
     if (!group) {
-      throw new NotFoundException('Invalid invite token');
+      throw new NotFoundException('招待リンクが無効です');
     }
     return {
       id: group.id,
@@ -83,7 +83,7 @@ export class GroupsService {
       where: { inviteToken: token },
     });
     if (!group) {
-      throw new NotFoundException('Invalid invite token');
+      throw new NotFoundException('招待リンクが無効です');
     }
 
     // 同じグループへの重複参加をチェック（複合ユニーク）
@@ -96,7 +96,7 @@ export class GroupsService {
       },
     });
     if (existing) {
-      throw new ConflictException('Already a member of this group');
+      throw new ConflictException('すでにこのグループのメンバーです');
     }
 
     await this.prisma.groupMember.create({
@@ -110,20 +110,34 @@ export class GroupsService {
     return this.formatGroup(updated!);
   }
 
+  async dissolveGroup(groupId: string, currentUser: User) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('グループが見つかりません');
+    if (group.ownerId !== currentUser.id) throw new ForbiddenException('グループオーナーのみグループを解散できます');
+
+    await this.prisma.$transaction([
+      this.prisma.shift.deleteMany({ where: { groupId } }),
+      this.prisma.event.deleteMany({ where: { groupId } }),
+      this.prisma.calendar.deleteMany({ where: { groupId } }),
+      this.prisma.groupMember.deleteMany({ where: { groupId } }),
+      this.prisma.group.delete({ where: { id: groupId } }),
+    ]);
+  }
+
   async removeMember(groupId: string, targetUserId: string, currentUser: User) {
     const group = await this.prisma.group.findUnique({ where: { id: groupId } });
-    if (!group) throw new NotFoundException('Group not found');
+    if (!group) throw new NotFoundException('グループが見つかりません');
 
     const isSelf = targetUserId === currentUser.id;
     const isGroupOwner = group.ownerId === currentUser.id;
 
-    if (!isSelf && !isGroupOwner) throw new ForbiddenException('Only the group owner or the member themselves can remove a member');
-    if (isSelf && isGroupOwner) throw new ForbiddenException('Group owner cannot leave their own group');
+    if (!isSelf && !isGroupOwner) throw new ForbiddenException('グループオーナーまたは本人のみ退会操作が可能です');
+    if (isSelf && isGroupOwner) throw new ForbiddenException('グループオーナーは自分自身をグループから退会させることはできません');
 
     const membership = await this.prisma.groupMember.findUnique({
       where: { groupId_userId: { groupId, userId: targetUserId } },
     });
-    if (!membership) throw new NotFoundException('Member not found');
+    if (!membership) throw new NotFoundException('メンバーが見つかりません');
 
     await this.prisma.groupMember.delete({
       where: { groupId_userId: { groupId, userId: targetUserId } },
