@@ -32,13 +32,12 @@ export default function ShiftPatternList({ patterns, onReordered }: ShiftPattern
     const swapIndex = direction === 'up' ? index - 1 : index + 1;
     if (swapIndex < 0 || swapIndex >= patterns.length) return;
 
-    const a = patterns[index];
-    const b = patterns[swapIndex];
+    const newOrder = [...patterns];
+    [newOrder[index], newOrder[swapIndex]] = [newOrder[swapIndex], newOrder[index]];
 
-    await Promise.all([
-      api.patch(`/shift-patterns/${a.id}`, { sortOrder: b.sortOrder }),
-      api.patch(`/shift-patterns/${b.id}`, { sortOrder: a.sortOrder }),
-    ]);
+    await Promise.all(
+      newOrder.map((p, i) => api.patch(`/shift-patterns/${p.id}`, { sortOrder: i })),
+    );
     onReordered();
   }
 
