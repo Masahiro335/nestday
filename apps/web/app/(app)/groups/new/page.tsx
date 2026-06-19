@@ -105,7 +105,7 @@ export default function GroupNewPage() {
             カレンダーへ進む
           </button>
           <Link
-            href="/settings"
+            href="/groups-settings"
             style={{ display: 'block', textAlign: 'center', color: '#6b7280', fontSize: 14, padding: '8px' }}
           >
             設定に戻る
@@ -120,7 +120,7 @@ export default function GroupNewPage() {
     <div style={{ background: '#f9fafb', minHeight: '100vh', paddingBottom: 'calc(var(--bottom-nav-height) + 16px)' }}>
       {/* ヘッダー */}
       <div style={{ background: '#fff', padding: '16px', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10, display: 'flex', alignItems: 'center' }}>
-        <Link href="/settings" style={{ color: '#3b82f6', fontSize: 15, marginRight: 'auto' }}>‹ 戻る</Link>
+        <Link href="/groups-settings" style={{ color: '#3b82f6', fontSize: 15, marginRight: 'auto' }}>‹ 戻る</Link>
         <h1 style={{ fontSize: 18, fontWeight: 700, position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>グループを作成</h1>
       </div>
 
