@@ -110,6 +110,20 @@ export class GroupsService {
     return this.formatGroup(updated!);
   }
 
+  async dissolveGroup(groupId: string, currentUser: User) {
+    const group = await this.prisma.group.findUnique({ where: { id: groupId } });
+    if (!group) throw new NotFoundException('Group not found');
+    if (group.ownerId !== currentUser.id) throw new ForbiddenException('Only the group owner can dissolve the group');
+
+    await this.prisma.$transaction([
+      this.prisma.shift.deleteMany({ where: { groupId } }),
+      this.prisma.event.deleteMany({ where: { groupId } }),
+      this.prisma.calendar.deleteMany({ where: { groupId } }),
+      this.prisma.groupMember.deleteMany({ where: { groupId } }),
+      this.prisma.group.delete({ where: { id: groupId } }),
+    ]);
+  }
+
   async removeMember(groupId: string, targetUserId: string, currentUser: User) {
     const group = await this.prisma.group.findUnique({ where: { id: groupId } });
     if (!group) throw new NotFoundException('Group not found');

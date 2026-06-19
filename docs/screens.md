@@ -67,7 +67,9 @@
                    │                   │                           ├─ メモ編集・保存（自分のみ）──▶ PATCH /users/me
                    │                   │                           └─ 退会ボタン（権限あり時）──▶ 退会確認画面
                    │                   │                                                            └─ 退会確定 ──▶ DELETE /groups/:id/members/:userId
-                   │                   └─ グループを作成する ──▶ /groups/new
+                   │                   ├─ グループを作成する ──▶ /groups/new
+                   │                   └─ グループを解散する（オーナーのみ）──▶ 解散確認画面
+                   │                                                              └─ 解散確定 ──▶ DELETE /groups/:id ──▶ /
                    │
                    ├─ プロフィール ──▶ /groups-settings/profile（準備中）
                    │
