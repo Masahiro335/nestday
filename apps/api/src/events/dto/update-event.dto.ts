@@ -38,4 +38,9 @@ export class UpdateEventDto {
   @IsOptional()
   @IsBoolean()
   isAllDay?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isSecret?: boolean;
 }

@@ -144,7 +144,10 @@ export default function DayDrawer({
                     }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 15, fontWeight: 500 }}>{ev.title}</div>
+                    <div style={{ fontSize: 15, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5 }}>
+                      {ev.isSecret && <span style={{ fontSize: 13 }}>🔒</span>}
+                      {ev.title}
+                    </div>
                     {/* 作成者バッジ */}
                     {creatorName && (
                       <CreatorBadge name={creatorName} isMe={isOwner} />

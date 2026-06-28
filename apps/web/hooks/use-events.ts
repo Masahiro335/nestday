@@ -14,6 +14,7 @@ export interface ApiEvent {
   startAt: string;
   endAt: string;
   isAllDay: boolean;
+  isSecret: boolean;
   createdAt: string;
   updatedAt: string;
 }

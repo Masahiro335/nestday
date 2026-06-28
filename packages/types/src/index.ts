@@ -61,6 +61,7 @@ export interface Event {
   startAt: string;
   endAt: string;
   isAllDay: boolean;
+  isSecret: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -131,6 +132,7 @@ export interface CreateEventRequest {
   startAt: string;
   endAt: string;
   isAllDay?: boolean;
+  isSecret?: boolean;
 }
 
 export interface UpdateEventRequest {
@@ -141,6 +143,7 @@ export interface UpdateEventRequest {
   startAt?: string;
   endAt?: string;
   isAllDay?: boolean;
+  isSecret?: boolean;
 }
 
 // ShiftPattern Requests

@@ -72,6 +72,7 @@ Table events {
   start_at timestamp [not null]
   end_at timestamp [not null]
   is_all_day boolean [default: false, note: 'true: only date is used']
+  is_secret boolean [default: false, note: 'true: only visible to the creator']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 

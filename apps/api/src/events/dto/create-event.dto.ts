@@ -39,4 +39,9 @@ export class CreateEventDto {
   @IsOptional()
   @IsBoolean()
   isAllDay?: boolean;
+
+  @ApiPropertyOptional({ default: false })
+  @IsOptional()
+  @IsBoolean()
+  isSecret?: boolean;
 }
