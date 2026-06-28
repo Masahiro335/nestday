@@ -131,8 +131,8 @@ Table shifts {
     (group_id, date)
   }
 
-  // One shift assignment per user per day
-  unique (user_id, date)
+  // Multiple shift patterns can be assigned per user per day
+  unique (user_id, date, shift_pattern_id)
 }
 
 // Notes on schema:
@@ -175,5 +175,5 @@ Table shifts {
 //    - sort_order: display order on pattern selection UI
 //
 // 8. shifts: Daily shift assignments per user
-//    - unique (user_id, date): one shift per user per day
+//    - unique (user_id, date, shift_pattern_id): multiple patterns per day allowed
 //    - group_id: denormalized for efficient group-wide queries (work calendar)
