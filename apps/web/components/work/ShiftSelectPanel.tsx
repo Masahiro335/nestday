@@ -1,12 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { Shift, ShiftPattern } from '@calendar-share/types';
-import { assignShift, removeShift } from '@/hooks/use-shifts';
+import { assignShifts, removeShift } from '@/hooks/use-shifts';
 
 interface ShiftSelectPanelProps {
   isOpen: boolean;
   date: string | null;
-  myShift: Shift | undefined;
+  myShifts: Shift[];
   patterns: ShiftPattern[];
   onClose: () => void;
   onUpdated: () => void;
@@ -21,26 +22,61 @@ function formatDateLabel(dateStr: string): string {
 export default function ShiftSelectPanel({
   isOpen,
   date,
-  myShift,
+  myShifts,
   patterns,
   onClose,
   onUpdated,
 }: ShiftSelectPanelProps) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedIds(new Set(myShifts.map((s) => s.shiftPatternId)));
+    }
+  }, [isOpen, myShifts]);
+
   if (!isOpen || !date) return null;
 
-  async function handleSelect(patternId: string) {
-    if (!date) return;
-    await assignShift(date, patternId);
-    onUpdated();
-    onClose();
+  function togglePattern(patternId: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(patternId)) {
+        next.delete(patternId);
+      } else {
+        next.add(patternId);
+      }
+      return next;
+    });
   }
 
-  async function handleRemove() {
+  async function handleSave() {
     if (!date) return;
-    await removeShift(date);
-    onUpdated();
-    onClose();
+    setSaving(true);
+    try {
+      await assignShifts(date, Array.from(selectedIds));
+      onUpdated();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   }
+
+  async function handleRemoveAll() {
+    if (!date) return;
+    setSaving(true);
+    try {
+      await removeShift(date);
+      onUpdated();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const hasChanges =
+    selectedIds.size !== myShifts.length ||
+    myShifts.some((s) => !selectedIds.has(s.shiftPatternId));
 
   return (
     <>
@@ -57,7 +93,7 @@ export default function ShiftSelectPanel({
           background: '#fff',
           borderRadius: '16px 16px 0 0',
           zIndex: 50,
-          maxHeight: '65vh',
+          maxHeight: '70vh',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 -4px 20px rgba(0,0,0,0.12)',
@@ -70,20 +106,22 @@ export default function ShiftSelectPanel({
           <button onClick={onClose} style={{ fontSize: 20, color: '#6b7280' }}>✕</button>
         </div>
 
-        <p style={{ fontSize: 13, color: '#6b7280', padding: '0 16px 8px' }}>自分のシフトを選択</p>
+        <p style={{ fontSize: 13, color: '#6b7280', padding: '0 16px 8px' }}>
+          シフトを選択（複数可）
+        </p>
 
-        <div style={{ overflowY: 'auto', padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ overflowY: 'auto', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
           {patterns.length === 0 && (
             <p style={{ color: '#9ca3af', fontSize: 14, textAlign: 'center', padding: '16px 0' }}>
               シフトパターンがありません
             </p>
           )}
           {patterns.map((pattern) => {
-            const isSelected = myShift?.shiftPatternId === pattern.id;
+            const isSelected = selectedIds.has(pattern.id);
             return (
               <button
                 key={pattern.id}
-                onClick={() => handleSelect(pattern.id)}
+                onClick={() => togglePattern(pattern.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -97,8 +135,27 @@ export default function ShiftSelectPanel({
               >
                 <span
                   style={{
-                    width: 14,
-                    height: 14,
+                    width: 20,
+                    height: 20,
+                    borderRadius: 4,
+                    border: isSelected ? '2px solid #3b82f6' : '2px solid #d1d5db',
+                    background: isSelected ? '#3b82f6' : '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {isSelected && (
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6L5 9L10 3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </span>
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
                     borderRadius: '50%',
                     background: pattern.color,
                     flexShrink: 0,
@@ -115,20 +172,40 @@ export default function ShiftSelectPanel({
               </button>
             );
           })}
+        </div>
 
-          {myShift && (
+        <div style={{ padding: '12px 16px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <button
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            style={{
+              padding: '12px',
+              borderRadius: 10,
+              background: hasChanges && !saving ? '#3b82f6' : '#d1d5db',
+              color: '#fff',
+              fontSize: 15,
+              fontWeight: 700,
+              border: 'none',
+              cursor: hasChanges && !saving ? 'pointer' : 'default',
+            }}
+          >
+            {saving ? '保存中...' : '保存する'}
+          </button>
+
+          {myShifts.length > 0 && (
             <button
-              onClick={handleRemove}
+              onClick={handleRemoveAll}
+              disabled={saving}
               style={{
                 padding: '10px',
                 border: '1px solid #fca5a5',
                 borderRadius: 8,
                 color: '#ef4444',
                 fontSize: 14,
-                marginTop: 4,
+                background: '#fff',
               }}
             >
-              シフトを削除
+              この日のシフトを全て削除
             </button>
           )}
         </div>

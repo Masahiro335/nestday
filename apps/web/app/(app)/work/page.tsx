@@ -70,9 +70,9 @@ export default function WorkCalendarPage() {
     ? shifts.filter((s) => s.userId === selectedMemberId)
     : shifts;
 
-  const myShiftOnDate = selectedDate
-    ? shifts.find((s) => s.date === selectedDate && s.userId === currentUserId)
-    : undefined;
+  const myShiftsOnDate = selectedDate
+    ? shifts.filter((s) => s.date === selectedDate && s.userId === currentUserId)
+    : [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -104,7 +104,7 @@ export default function WorkCalendarPage() {
       <ShiftSelectPanel
         isOpen={!!selectedDate}
         date={selectedDate}
-        myShift={myShiftOnDate}
+        myShifts={myShiftsOnDate}
         patterns={patterns}
         onClose={() => setSelectedDate(null)}
         onUpdated={() => mutate()}

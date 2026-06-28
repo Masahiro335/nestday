@@ -135,6 +135,6 @@ model Shift {
   shiftPattern   ShiftPattern @relation(fields: [shiftPatternId], references: [id])
   user           User         @relation(fields: [userId], references: [id])
 
-  @@unique([userId, date])
+  @@unique([userId, date, shiftPatternId])
   @@map("shifts")
 }

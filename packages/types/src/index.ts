@@ -166,7 +166,7 @@ export interface UpdateShiftPatternRequest {
 
 // Shift Requests
 export interface AssignShiftRequest {
-  shiftPatternId: string;
+  shiftPatternIds: string[];
 }
 
 // Group Requests

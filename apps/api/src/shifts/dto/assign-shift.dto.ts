@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { IsArray, IsUUID } from 'class-validator';
 
 export class AssignShiftDto {
-  @ApiProperty({ description: 'ShiftPattern ID to assign' })
-  @IsUUID()
-  shiftPatternId!: string;
+  @ApiProperty({ description: 'ShiftPattern IDs to assign', type: [String] })
+  @IsArray()
+  @IsUUID('all', { each: true })
+  shiftPatternIds!: string[];
 }

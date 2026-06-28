@@ -69,44 +69,47 @@ export class ShiftsService {
     const groupId = await this.getGroupId(currentUser.id);
     const parsedDate = new Date(date);
 
-    const shift = await this.prisma.shift.upsert({
+    // Remove patterns not in the new list
+    await this.prisma.shift.deleteMany({
       where: {
-        userId_date: {
+        userId: currentUser.id,
+        date: parsedDate,
+        shiftPatternId: { notIn: dto.shiftPatternIds },
+      },
+    });
+
+    // Upsert each selected pattern
+    for (const shiftPatternId of dto.shiftPatternIds) {
+      await this.prisma.shift.upsert({
+        where: {
+          userId_date_shiftPatternId: {
+            userId: currentUser.id,
+            date: parsedDate,
+            shiftPatternId,
+          },
+        },
+        create: {
           userId: currentUser.id,
+          groupId,
+          shiftPatternId,
           date: parsedDate,
         },
-      },
-      create: {
-        userId: currentUser.id,
-        groupId,
-        shiftPatternId: dto.shiftPatternId,
-        date: parsedDate,
-      },
-      update: {
-        shiftPatternId: dto.shiftPatternId,
-      },
+        update: {},
+      });
+    }
+
+    const shifts = await this.prisma.shift.findMany({
+      where: { userId: currentUser.id, date: parsedDate },
       ...shiftInclude,
     });
-    return this.formatShiftDate(shift);
+    return shifts.map((s) => this.formatShiftDate(s));
   }
 
   async remove(date: string, currentUser: User) {
     await this.getGroupId(currentUser.id);
     const parsedDate = new Date(date);
-
-    const shift = await this.prisma.shift.findUnique({
-      where: {
-        userId_date: {
-          userId: currentUser.id,
-          date: parsedDate,
-        },
-      },
-    });
-    if (!shift) {
-      throw new NotFoundException('シフトが見つかりません');
-    }
-    await this.prisma.shift.delete({
-      where: { userId_date: { userId: currentUser.id, date: parsedDate } },
+    await this.prisma.shift.deleteMany({
+      where: { userId: currentUser.id, date: parsedDate },
     });
   }
 }
