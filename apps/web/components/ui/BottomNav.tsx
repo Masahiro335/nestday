@@ -12,6 +12,7 @@ const settingsMenu = [
 
 const tabs = [
   { href: '/', label: 'プライベート', icon: '🏠', match: (p: string) => p === '/' },
+  { href: '/todo', label: 'TODO', icon: '✅', match: (p: string) => p.startsWith('/todo') },
   { href: '/work', label: '仕事用', icon: '💼', match: (p: string) => p.startsWith('/work') },
 ];
 
