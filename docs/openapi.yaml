@@ -570,6 +570,10 @@ paths:
                 isAllDay:
                   type: boolean
                   default: false
+                isSecret:
+                  type: boolean
+                  default: false
+                  description: trueの場合、作成者のみに表示されるシークレット予定になる
               required:
                 - calendarId
                 - title
@@ -657,6 +661,9 @@ paths:
                   format: date-time
                 isAllDay:
                   type: boolean
+                isSecret:
+                  type: boolean
+                  description: trueの場合、作成者のみに表示されるシークレット予定になる
       responses:
         '200':
           description: Event updated successfully
@@ -1266,6 +1273,10 @@ components:
           format: date-time
         isAllDay:
           type: boolean
+        isSecret:
+          type: boolean
+          default: false
+          description: trueの場合、作成者のみに表示されるシークレット予定
         createdAt:
           type: string
           format: date-time
@@ -1281,6 +1292,7 @@ components:
         - startAt
         - endAt
         - isAllDay
+        - isSecret
         - createdAt
         - updatedAt
 

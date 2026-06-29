@@ -18,6 +18,7 @@ interface ApiEvent {
   startAt: string;
   endAt: string;
   isAllDay: boolean;
+  isSecret: boolean;
 }
 
 interface ApiCalendar {
@@ -56,6 +57,7 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
     return now.toISOString().slice(0, 16);
   });
   const [isAllDay, setIsAllDay] = useState(false);
+  const [isSecret, setIsSecret] = useState(false);
   const [color, setColor] = useState(DEFAULT_COLOR);
   const [location, setLocation] = useState('');
   const [memo, setMemo] = useState('');
@@ -96,6 +98,7 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
           setStartAt(data.startAt.slice(0, 16));
           setEndAt(data.endAt.slice(0, 16));
           setIsAllDay(data.isAllDay);
+          setIsSecret(data.isSecret);
           setColor(data.color ?? DEFAULT_COLOR);
           setLocation(data.location ?? '');
           setMemo(data.memo ?? '');
@@ -135,6 +138,7 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
       color,
       location: location || undefined,
       memo: memo || undefined,
+      isSecret,
     };
 
     try {
@@ -174,7 +178,8 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
       {/* ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
         <button type="button" onClick={() => router.back()} style={{ fontSize: 22, color: '#6b7280' }}>✕</button>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>
+        <span style={{ fontWeight: 700, fontSize: 16, display: 'flex', alignItems: 'center', gap: 6 }}>
+          {isSecret && <span style={{ fontSize: 14 }}>🔒</span>}
           {readOnly ? '予定詳細' : isEdit ? '予定編集' : '予定作成'}
         </span>
         {!readOnly && (
@@ -241,6 +246,25 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
             />
             終日
           </label>
+        </div>
+
+        {/* シークレット設定 */}
+        <div style={{ padding: '16px 0', borderBottom: '1px solid #e5e7eb' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: isSecret ? '#7c3aed' : '#6b7280', cursor: readOnly ? 'default' : 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={isSecret}
+              onChange={(e) => !readOnly && setIsSecret(e.target.checked)}
+              disabled={readOnly}
+            />
+            <span style={{ fontSize: 16 }}>🔒</span>
+            シークレット予定（自分だけに表示）
+          </label>
+          {isSecret && !readOnly && (
+            <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 6, paddingLeft: 28 }}>
+              他のメンバーには表示されません
+            </p>
+          )}
         </div>
 
         {/* カラー */}

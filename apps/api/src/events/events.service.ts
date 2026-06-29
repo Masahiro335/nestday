@@ -30,6 +30,9 @@ export class EventsService {
     await this.requireGroupMembership(currentUser.id);
     const event = await this.prisma.event.findUnique({ where: { id } });
     if (!event) throw new NotFoundException('イベントが見つかりません');
+    if (event.isSecret && event.createdBy !== currentUser.id) {
+      throw new NotFoundException('イベントが見つかりません');
+    }
     return event;
   }
 
@@ -46,6 +49,10 @@ export class EventsService {
         groupId: { in: targetGroupIds },
         startAt: { lte: monthEnd },
         endAt: { gte: monthStart },
+        OR: [
+          { isSecret: false },
+          { isSecret: true, createdBy: currentUser.id },
+        ],
       },
       orderBy: { startAt: 'asc' },
     });
@@ -72,6 +79,7 @@ export class EventsService {
         startAt: new Date(dto.startAt),
         endAt: new Date(dto.endAt),
         isAllDay: dto.isAllDay ?? false,
+        isSecret: dto.isSecret ?? false,
       },
     });
   }
@@ -94,6 +102,7 @@ export class EventsService {
         ...(dto.startAt !== undefined && { startAt: new Date(dto.startAt) }),
         ...(dto.endAt !== undefined && { endAt: new Date(dto.endAt) }),
         ...(dto.isAllDay !== undefined && { isAllDay: dto.isAllDay }),
+        ...(dto.isSecret !== undefined && { isSecret: dto.isSecret }),
       },
     });
   }

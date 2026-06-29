@@ -18,9 +18,13 @@ export default function EventBadge({ event }: EventBadgeProps) {
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
         marginBottom: 1,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
       }}
     >
-      {event.title}
+      {event.isSecret && <span style={{ fontSize: 9, flexShrink: 0 }}>🔒</span>}
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{event.title}</span>
     </div>
   );
 }
