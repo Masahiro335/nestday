@@ -1142,11 +1142,21 @@ paths:
 
   /todo-lists:
     get:
-      summary: Get all todo lists for the current user's group
+      summary: Get all todo lists for a group
+      description: |
+        指定グループのTODOリスト一覧を返す。`groupId` を省略した場合はユーザーの最初の所属グループを使用する。
       tags:
         - TodoLists
       security:
         - bearerAuth: []
+      parameters:
+        - name: groupId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: 取得対象グループID（省略時はユーザーの最初の所属グループ）
       responses:
         '200':
           description: List of todo lists
@@ -1158,11 +1168,15 @@ paths:
                   $ref: '#/components/schemas/TodoList'
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - not a member of the specified group
         '404':
           description: Group not found
 
     post:
       summary: Create a todo list
+      description: |
+        新しいTODOリストを作成する。`groupId` を指定した場合はそのグループに作成する（メンバーシップ検証あり）。省略時はユーザーの最初の所属グループに作成する。
       tags:
         - TodoLists
       security:
@@ -1182,6 +1196,10 @@ paths:
                   type: string
                   pattern: '^#[0-9A-Fa-f]{6}$'
                   default: '#3b82f6'
+                groupId:
+                  type: string
+                  format: uuid
+                  description: 作成先グループID（省略時はユーザーの最初の所属グループ）
               required:
                 - name
       responses:
@@ -1195,6 +1213,8 @@ paths:
           description: Invalid input
         '401':
           description: Unauthorized
+        '403':
+          description: Forbidden - not a member of the specified group
         '404':
           description: Group not found
 
@@ -1341,9 +1361,10 @@ paths:
 
   /todo-items/{id}:
     patch:
-      summary: Update a todo item (creator only)
+      summary: Update a todo item
       description: |
-        作成者のみタイトル・メモ・期限日・担当者を変更できる。
+        **編集フィールド（title / memo / dueDate / assignedTo）**: 作成者のみ変更可。
+        **完了トグル（isCompleted のみ）**: 担当者（assignedTo）が設定されている場合は担当者のみ操作可。担当者未設定の場合はグループメンバー全員が操作可。
         `isCompleted` を true にすると `completedAt` が自動記録される。false に戻すと `completedAt` がクリアされる。
       tags:
         - TodoItems
@@ -1388,7 +1409,7 @@ paths:
         '401':
           description: Unauthorized
         '403':
-          description: Forbidden - not the creator
+          description: Forbidden - not the creator (for edit fields) or not the assignee (for completion toggle)
         '404':
           description: Todo item not found
 

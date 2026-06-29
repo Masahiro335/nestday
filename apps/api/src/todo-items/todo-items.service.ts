@@ -15,18 +15,17 @@ const itemInclude = {
 export class TodoItemsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getGroupId(userId: string): Promise<string> {
-    const membership = await this.prisma.groupMember.findFirst({
-      where: { userId },
+  private async assertGroupMember(groupId: string, userId: string) {
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
     });
-    if (!membership) throw new NotFoundException('グループが見つかりません');
-    return membership.groupId;
+    if (!membership) throw new ForbiddenException('グループメンバーのみ操作できます');
   }
 
   async findByList(listId: string, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
     const list = await this.prisma.todoList.findUnique({ where: { id: listId } });
-    if (!list || list.groupId !== groupId) throw new NotFoundException('リストが見つかりません');
+    if (!list) throw new NotFoundException('リストが見つかりません');
+    await this.assertGroupMember(list.groupId, currentUser.id);
 
     return this.prisma.todoItem.findMany({
       where: { listId },
@@ -36,14 +35,14 @@ export class TodoItemsService {
   }
 
   async create(dto: CreateTodoItemDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
     const list = await this.prisma.todoList.findUnique({ where: { id: dto.listId } });
-    if (!list || list.groupId !== groupId) throw new NotFoundException('リストが見つかりません');
+    if (!list) throw new NotFoundException('リストが見つかりません');
+    await this.assertGroupMember(list.groupId, currentUser.id);
 
     return this.prisma.todoItem.create({
       data: {
         listId: dto.listId,
-        groupId,
+        groupId: list.groupId,
         createdBy: currentUser.id,
         title: dto.title,
         memo: dto.memo,
@@ -57,7 +56,27 @@ export class TodoItemsService {
   async update(id: string, dto: UpdateTodoItemDto, currentUser: User) {
     const item = await this.prisma.todoItem.findUnique({ where: { id } });
     if (!item) throw new NotFoundException('TODOが見つかりません');
-    if (item.createdBy !== currentUser.id) throw new ForbiddenException('作成者のみ編集できます');
+
+    const hasEditFields =
+      dto.title !== undefined ||
+      dto.memo !== undefined ||
+      dto.dueDate !== undefined ||
+      'assignedTo' in dto;
+
+    // Edit fields (title / memo / dueDate / assignedTo): creator only
+    if (hasEditFields && item.createdBy !== currentUser.id) {
+      throw new ForbiddenException('作成者のみ編集できます');
+    }
+
+    // Completion toggle: assignee only (if assigned), otherwise any group member
+    if (dto.isCompleted !== undefined) {
+      if (item.assignedTo && item.assignedTo !== currentUser.id) {
+        throw new ForbiddenException('担当者のみ完了操作できます');
+      }
+      if (!item.assignedTo) {
+        await this.assertGroupMember(item.groupId, currentUser.id);
+      }
+    }
 
     const completedAt =
       dto.isCompleted === true && !item.isCompleted

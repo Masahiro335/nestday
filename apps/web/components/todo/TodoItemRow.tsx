@@ -29,8 +29,11 @@ export default function TodoItemRow({ item, listColor, currentUserId, members, o
   const [saving, setSaving] = useState(false);
 
   const isOwner = item.createdBy === currentUserId;
+  // assignee only can toggle (if no assignee, any group member can toggle)
+  const canToggle = !item.assignedTo || item.assignedTo === currentUserId;
 
   async function toggleComplete() {
+    if (!canToggle) return;
     await updateTodoItem(item.id, { isCompleted: !item.isCompleted });
     onMutate();
   }
@@ -74,6 +77,8 @@ export default function TodoItemRow({ item, listColor, currentUserId, members, o
         {/* Checkbox */}
         <button
           onClick={toggleComplete}
+          disabled={!canToggle}
+          title={!canToggle ? '担当者のみ完了操作できます' : undefined}
           style={{
             flexShrink: 0,
             width: 24,
@@ -84,9 +89,10 @@ export default function TodoItemRow({ item, listColor, currentUserId, members, o
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'pointer',
+            cursor: canToggle ? 'pointer' : 'default',
             marginTop: 1,
             padding: 0,
+            opacity: canToggle ? 1 : 0.45,
           }}
         >
           {item.isCompleted && (

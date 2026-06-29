@@ -8,18 +8,26 @@ import { UpdateTodoListDto } from './dto/update-todo-list.dto';
 export class TodoListsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async getGroupId(userId: string): Promise<string> {
+  private async resolveGroupId(userId: string, groupId?: string): Promise<string> {
+    if (groupId) {
+      const membership = await this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId, userId } },
+      });
+      if (!membership) throw new ForbiddenException('このグループへのアクセス権がありません');
+      return groupId;
+    }
     const membership = await this.prisma.groupMember.findFirst({
       where: { userId },
+      orderBy: { joinedAt: 'asc' },
     });
     if (!membership) throw new NotFoundException('グループが見つかりません');
     return membership.groupId;
   }
 
-  async findAll(currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+  async findAll(currentUser: User, groupId?: string) {
+    const targetGroupId = await this.resolveGroupId(currentUser.id, groupId);
     return this.prisma.todoList.findMany({
-      where: { groupId },
+      where: { groupId: targetGroupId },
       include: {
         creator: { select: { id: true, name: true, email: true } },
         _count: { select: { items: true } },
@@ -29,10 +37,10 @@ export class TodoListsService {
   }
 
   async create(dto: CreateTodoListDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const targetGroupId = await this.resolveGroupId(currentUser.id, dto.groupId);
     return this.prisma.todoList.create({
       data: {
-        groupId,
+        groupId: targetGroupId,
         createdBy: currentUser.id,
         name: dto.name,
         color: dto.color ?? '#3b82f6',

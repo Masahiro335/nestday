@@ -9,6 +9,7 @@ interface Props {
   onSelect: (id: string) => void;
   onMutate: () => void;
   currentUserId?: string;
+  groupId?: string;
 }
 
 const LIST_COLORS = [
@@ -16,7 +17,7 @@ const LIST_COLORS = [
   '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16',
 ];
 
-export default function TodoListSelector({ lists, selectedListId, onSelect, onMutate, currentUserId }: Props) {
+export default function TodoListSelector({ lists, selectedListId, onSelect, onMutate, currentUserId, groupId }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [color, setColor] = useState(LIST_COLORS[0]);
@@ -27,7 +28,7 @@ export default function TodoListSelector({ lists, selectedListId, onSelect, onMu
     if (!name.trim()) return;
     setSaving(true);
     try {
-      const list = await createTodoList(name.trim(), color);
+      const list = await createTodoList(name.trim(), color, groupId ?? '');
       onMutate();
       onSelect(list.id);
       setName('');

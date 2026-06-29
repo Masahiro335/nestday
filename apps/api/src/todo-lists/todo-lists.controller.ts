@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -15,9 +15,10 @@ export class TodoListsController {
   constructor(private readonly todoListsService: TodoListsService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get all todo lists for the current group' })
-  findAll(@CurrentUser() user: User) {
-    return this.todoListsService.findAll(user);
+  @ApiOperation({ summary: 'Get all todo lists for a group' })
+  @ApiQuery({ name: 'groupId', required: false })
+  findAll(@Query('groupId') groupId: string | undefined, @CurrentUser() user: User) {
+    return this.todoListsService.findAll(user, groupId);
   }
 
   @Post()
