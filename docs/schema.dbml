@@ -136,6 +136,45 @@ Table shifts {
   unique (user_id, date, shift_pattern_id)
 }
 
+Table todo_lists {
+  id uuid [pk]
+  group_id uuid [not null, ref: > groups.id]
+  name string [not null, note: 'リスト名']
+  color string [not null, default: '#3b82f6', note: 'e.g., #3b82f6']
+  created_by uuid [not null, ref: > users.id]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    group_id
+    created_by
+  }
+}
+
+Table todo_items {
+  id uuid [pk]
+  list_id uuid [not null, ref: > todo_lists.id]
+  group_id uuid [not null, ref: > groups.id]
+  title string [not null]
+  memo string
+  due_date timestamp [note: 'optional deadline']
+  created_by uuid [not null, ref: > users.id]
+  assigned_to uuid [ref: > users.id, note: 'optional assignee']
+  is_completed boolean [default: false]
+  completed_at timestamp [note: 'set when is_completed becomes true']
+  sort_order int [default: 0]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+
+  indexes {
+    list_id
+    group_id
+    created_by
+    assigned_to
+    (list_id, is_completed, sort_order)
+  }
+}
+
 // Notes on schema:
 //
 // 1. users: Basic user authentication
@@ -178,3 +217,16 @@ Table shifts {
 // 8. shifts: Daily shift assignments per user
 //    - unique (user_id, date, shift_pattern_id): multiple patterns per day allowed
 //    - group_id: denormalized for efficient group-wide queries (work calendar)
+//
+// 9. todo_lists: TODO list definitions per group
+//    - group_id: shared among all group members
+//    - color: hex color for visual identification
+//    - created_by: only creator can delete the list
+//
+// 10. todo_items: Individual TODO items within a list
+//    - list_id: cascade-deleted when parent list is deleted
+//    - created_by: only creator can edit/delete the item
+//    - assigned_to: optional, any group member can be assigned
+//    - is_completed: toggled by any group member
+//    - completed_at: automatically set/cleared when is_completed changes
+//    - sort_order: display order within the list (未完了 → 完了 の順で表示)

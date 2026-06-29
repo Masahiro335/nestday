@@ -11,6 +11,8 @@ import { EventsModule } from './events/events.module';
 import { ColorLabelsModule } from './color-labels/color-labels.module';
 import { ShiftsModule } from './shifts/shifts.module';
 import { UsersModule } from './users/users.module';
+import { TodoListsModule } from './todo-lists/todo-lists.module';
+import { TodoItemsModule } from './todo-items/todo-items.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { UsersModule } from './users/users.module';
     ColorLabelsModule,
     ShiftsModule,
     UsersModule,
+    TodoListsModule,
+    TodoItemsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },

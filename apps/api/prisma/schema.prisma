@@ -17,13 +17,16 @@ model User {
   memo          String?
   createdAt     DateTime       @default(now()) @map("created_at")
   updatedAt     DateTime       @updatedAt @map("updated_at")
-  calendars     Calendar[]
-  colorLabels   ColorLabel[]
-  events        Event[]
-  groupMembers  GroupMember[]
-  ownedGroups   Group[]        @relation("GroupOwner")
-  shiftPatterns ShiftPattern[]
-  shifts        Shift[]
+  calendars          Calendar[]
+  colorLabels        ColorLabel[]
+  events             Event[]
+  groupMembers       GroupMember[]
+  ownedGroups        Group[]        @relation("GroupOwner")
+  shiftPatterns      ShiftPattern[]
+  shifts             Shift[]
+  createdTodoLists   TodoList[]     @relation("TodoListCreator")
+  createdTodoItems   TodoItem[]     @relation("TodoItemCreator")
+  assignedTodoItems  TodoItem[]     @relation("TodoItemAssignee")
 
   @@map("users")
 }
@@ -53,6 +56,8 @@ model Group {
   members     GroupMember[]
   owner       User          @relation("GroupOwner", fields: [ownerId], references: [id])
   shifts      Shift[]
+  todoLists   TodoList[]
+  todoItems   TodoItem[]
 
   @@map("groups")
 }
@@ -139,3 +144,41 @@ model Shift {
   @@unique([userId, date, shiftPatternId])
   @@map("shifts")
 }
+
+model TodoList {
+  id        String     @id @default(uuid())
+  groupId   String     @map("group_id")
+  name      String
+  color     String     @default("#3b82f6")
+  createdBy String     @map("created_by")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+  creator   User       @relation("TodoListCreator", fields: [createdBy], references: [id])
+  group     Group      @relation(fields: [groupId], references: [id])
+  items     TodoItem[]
+
+  @@map("todo_lists")
+}
+
+model TodoItem {
+  id          String    @id @default(uuid())
+  listId      String    @map("list_id")
+  groupId     String    @map("group_id")
+  title       String
+  memo        String?
+  dueDate     DateTime? @map("due_date")
+  createdBy   String    @map("created_by")
+  assignedTo  String?   @map("assigned_to")
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  assignee    User?     @relation("TodoItemAssignee", fields: [assignedTo], references: [id])
+  creator     User      @relation("TodoItemCreator", fields: [createdBy], references: [id])
+  group       Group     @relation(fields: [groupId], references: [id])
+  list        TodoList  @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  @@map("todo_items")
+}
+
