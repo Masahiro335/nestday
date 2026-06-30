@@ -1,6 +1,6 @@
 'use client';
 
-import type { Shift } from '@calendar-share/types';
+import type { Shift } from '@nestday/types';
 import ShiftCell from './ShiftCell';
 
 interface WorkCalendarGridProps {

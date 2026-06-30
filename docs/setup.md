@@ -33,7 +33,7 @@ cd nestday
 
 | 項目 | 値 |
 |------|---|
-| Project name | `calendar-share`（任意） |
+| Project name | `nestday`（任意） |
 | Database Password | 任意（安全なパスワードを設定・メモしておく） |
 | Region | 最寄りのリージョン（例: Northeast Asia (Tokyo)） |
 
@@ -161,7 +161,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 NEXT_PUBLIC_API_URL=http://localhost:3001/api/v1
 
 # アプリ情報（開発時はデフォルトのままでOK）
-NEXT_PUBLIC_APP_NAME=Calendar Share
+NEXT_PUBLIC_APP_NAME=NestDay
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 

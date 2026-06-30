@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import api from '@/lib/api';
 import InviteLinkCard from '@/components/group/InviteLinkCard';
-import type { Group } from '@calendar-share/types';
+import type { Group } from '@nestday/types';
 
 export default function OnboardingForm() {
   const [name, setName] = useState('');

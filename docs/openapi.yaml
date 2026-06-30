@@ -9,7 +9,7 @@ info:
 servers:
   - url: http://localhost:3001/api/v1
     description: Development server
-  - url: https://api.calendar-share.app/api/v1
+  - url: https://api.nestday.app/api/v1
     description: Production server
 
 paths:

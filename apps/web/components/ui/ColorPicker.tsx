@@ -1,6 +1,6 @@
 'use client';
 
-import { EVENT_COLORS } from '@calendar-share/types';
+import { EVENT_COLORS } from '@nestday/types';
 
 interface ColorPickerProps {
   value: string;

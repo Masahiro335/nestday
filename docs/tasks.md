@@ -422,7 +422,7 @@ start_at <= 月末 AND end_at >= 月初
 - `packages/types/package.json` のエントリポイントを設定
 
 **完了条件**
-- [x] `import type { Event } from '@calendar-share/types'` が Web・API 両方から使える
+- [x] `import type { Event } from '@nestday/types'` が Web・API 両方から使える
 - [x] 型が OpenAPI `components/schemas` の定義と一致している
 
 ---

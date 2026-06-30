@@ -1,4 +1,4 @@
-import type { Shift } from '@calendar-share/types';
+import type { Shift } from '@nestday/types';
 
 interface ShiftCellProps {
   date: Date;

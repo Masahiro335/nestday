@@ -9,7 +9,7 @@
 ## モノレポ構成
 
 ```
-calendar-share/
+nestday/
 ├── apps/
 │   ├── web/          # Next.js フロントエンド
 │   └── api/          # NestJS バックエンド

@@ -1,6 +1,6 @@
 import useSWR from 'swr';
 import api from '@/lib/api';
-import type { Shift, ShiftPattern } from '@calendar-share/types';
+import type { Shift, ShiftPattern } from '@nestday/types';
 
 function fetcher<T>(url: string) {
   return api.get<T>(url).then((res) => res.data);

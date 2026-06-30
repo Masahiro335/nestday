@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import type { GroupPreview } from '@calendar-share/types';
+import type { GroupPreview } from '@nestday/types';
 
 export default function JoinPage() {
   const router = useRouter();
