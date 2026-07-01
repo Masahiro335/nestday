@@ -487,6 +487,129 @@ model Shift {
 
 ---
 
+---
+
+## フェーズ 10: ローディングゲーム機能
+
+API 通信が 5 秒以上かかった場合に恐竜ランニングゲームのモーダルを表示する UX 改善機能。
+
+### 実装ファイル
+
+```
+apps/web/
+├── lib/
+│   ├── api.ts                         # axios インターセプターに通知処理を追加
+│   └── loading-game-store.ts          # リクエスト管理シングルトンストア（新規）
+├── components/ui/
+│   ├── DinoGame.tsx                   # Canvas ベースの恐竜ランゲーム（新規）
+│   ├── LoadingGameModal.tsx           # ゲームを包むモーダル UI（新規）
+│   └── LoadingGameProvider.tsx        # ストアを購読するクライアントプロバイダー（新規）
+└── app/
+    └── layout.tsx                     # LoadingGameProvider をルートに追加
+```
+
+### アーキテクチャ
+
+```
+axios request
+  → api.interceptors.request（loadingGameStore.requestStarted()）
+      ↓ 5秒経過
+  loadingGameStore → emit(true)
+      ↓
+  LoadingGameProvider（useEffect で subscribe）
+      ↓ show = true
+  LoadingGameModal → DinoGame（canvas アニメーション）
+
+axios response / error
+  → api.interceptors.response（loadingGameStore.requestEnded()）
+      ↓ pendingCount === 0
+  loadingGameStore → emit(false)
+      ↓
+  LoadingGameProvider → show = false → モーダル即時クローズ
+```
+
+### `lib/loading-game-store.ts` 実装ポイント
+
+- `pendingCount`（同時進行リクエスト数）を管理する **シングルトンクラス**
+- `requestStarted()`: カウントが 0→1 になった時点で 5000ms タイマーをセット
+- `requestEnded()`: カウントが 0 に戻った時点でタイマークリア（未発火）or `emit(false)`（発火済み）
+- `subscribe(fn)`: React コンポーネントがリスナーを登録する pub/sub インターフェース
+- タイマー発火前に全リクエストが完了した場合、モーダルは **表示されない**
+
+### `lib/api.ts` 変更ポイント
+
+```typescript
+// request interceptor（fulfilled）
+loadingGameStore.requestStarted();  // ← 追加
+const token = await getAccessToken();
+...
+
+// request interceptor（rejected）
+loadingGameStore.requestEnded();    // ← 追加（interceptor 自体のエラー時）
+
+// response interceptor（fulfilled）
+loadingGameStore.requestEnded();    // ← 追加
+
+// response interceptor（rejected）
+loadingGameStore.requestEnded();    // ← 追加
+```
+
+### `components/ui/DinoGame.tsx` 実装ポイント
+
+**ゲームループ（Canvas / requestAnimationFrame）**
+
+| 定数 | 値 | 説明 |
+|---|---|---|
+| `W × H` | 600 × 180 | キャンバスサイズ |
+| `GROUND` | 150 | 地面 Y 座標 |
+| `DINO_X` | 60 | 恐竜固定 X 座標 |
+| `DINO_W × DINO_H` | 44 × 47 | 恐竜サイズ |
+| `GRAVITY` | 0.65 | 重力加速度 |
+| `JUMP_V` | -14 | ジャンプ初速 |
+| `BASE_SPEED` | 5 | 初期スクロール速度 |
+
+- フレームごとに `speed += 0.005` でゲームが徐々に加速する
+- 障害物（サボテン）は `nextObstacleFrame` で間隔管理し、ランダムな高さ（30〜70px）で出現
+- `isActive` が `false`（API レスポンス到着）になると即座にループ停止・イベントリスナー解除
+
+**当たり判定（ヒットボックス）**
+
+視覚より内側に縮小した矩形でプレイヤーに有利な判定とする。
+
+| 辺 | 計算式 | 備考 |
+|---|---|---|
+| 左 | `DINO_X + 10` | 胴体左端から内側 |
+| 右 | `DINO_X + DINO_W - 10` | 頭部右端から内側 |
+| 上 | `s.dy + 10` | 頭頂から内側 |
+| **下** | **`s.dy + DINO_H - 4`** | **恐竜位置に追従（ジャンプ中に浮く）** |
+
+> **修正履歴**: 初期実装では底辺を `GROUND - 2`（定数）にしていたため、
+> ジャンプ中でも地面レベルで衝突判定が発生し「避けてもゲームオーバー」になる不具合があった。
+> `s.dy + DINO_H - 4` に修正し、ジャンプ高度に応じて底辺が正しく上昇するようにした。
+
+| 辺 | 計算式 |
+|---|---|
+| 左 | `o.x + 6` |
+| 右 | `o.x + 26` |
+| 上 | `GROUND - o.h + 6` |
+
+**描画要素**
+
+- 恐竜（矩形の組み合わせ）：走行時は左右の足を 8 フレームごとに交互、ジャンプ中は両足揃え
+- サボテン：幹＋左腕＋右腕を矩形で描画
+- 地面：2本のラインと複数のダッシュ（視差スクロール）
+- 雲：楕円の組み合わせ（低速視差スクロール）
+- スコア：右上に 5 桁ゼロ埋め表示
+
+### `components/ui/LoadingGameModal.tsx` 実装ポイント
+
+- `isActive` が `false` → `return null`（アンマウントでゲームループも停止）
+- ゲームオーバー時は 1.5 秒後に `gameKey` をインクリメント → `DinoGame` を再マウントして自動リスタート
+- ベストスコアは `useState` で同セッション内保持
+- バウンスアニメーションするドット 3 つで「通信中」を視覚的に表現
+
+---
+
 ## 関連ドキュメント
 
 - [要件書](./requirements.md)
@@ -504,3 +627,4 @@ model Shift {
 | 2026-06-19 | ShiftPattern の sortOrder 自動付与と並び替えの一括再割り当て仕様を追記 |
 | 2026-06-19 | ShiftPattern 並び替えをドラッグ＆ドロップ（@dnd-kit）に変更 |
 | 2026-06-19 | ShiftPattern 並び替えのドラッグ範囲を行全体に変更（ハンドルアイコン廃止） |
+| 2026-07-01 | フェーズ10追加：ローディングゲーム機能（LoadingGameStore・DinoGame・当たり判定修正を含む） |

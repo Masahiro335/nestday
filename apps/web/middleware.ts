@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_ROUTES = ['/login', '/register'];
+const PUBLIC_ROUTES = ['/login', '/register', '/game-preview'];
 const GROUP_OPTIONAL_ROUTES = ['/onboarding', '/join'];
 
 export async function middleware(request: NextRequest) {
