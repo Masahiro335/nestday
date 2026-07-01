@@ -106,6 +106,7 @@ export default function WorkCalendarPage() {
         date={selectedDate}
         myShifts={myShiftsOnDate}
         patterns={patterns}
+        groupId={selectedGroupId}
         onClose={() => setSelectedDate(null)}
         onUpdated={() => mutate()}
       />

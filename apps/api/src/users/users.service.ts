@@ -76,7 +76,9 @@ export class UsersService {
     }
 
     await this.prisma.$transaction([
-      // Shift → ShiftPattern → Event → Calendar → GroupMember → User の順で削除
+      this.prisma.todoItem.deleteMany({ where: { createdBy: currentUser.id } }),
+      this.prisma.todoList.deleteMany({ where: { createdBy: currentUser.id } }),
+      this.prisma.colorLabel.deleteMany({ where: { userId: currentUser.id } }),
       this.prisma.shift.deleteMany({ where: { userId: currentUser.id } }),
       this.prisma.shiftPattern.deleteMany({ where: { userId: currentUser.id } }),
       this.prisma.event.deleteMany({ where: { createdBy: currentUser.id } }),

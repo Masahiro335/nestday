@@ -186,8 +186,8 @@ Table todo_items {
 //    - owner_id: user who created the group
 //
 // 3. group_members: Group membership
-//    - unique constraint on user_id: enforces 1 user = 1 group
-//    - When user joins a group via invite link, new row is created
+//    - unique constraint on (group_id, user_id): prevents duplicate membership in same group
+//    - 1 user can belong to multiple groups; joining via invite link creates a new row
 //
 // 4. calendars: Supports multiple calendars per group
 //    - Each group can have many calendars (private, work, etc.)

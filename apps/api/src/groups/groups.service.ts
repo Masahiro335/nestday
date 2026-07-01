@@ -116,6 +116,8 @@ export class GroupsService {
     if (group.ownerId !== currentUser.id) throw new ForbiddenException('グループオーナーのみグループを解散できます');
 
     await this.prisma.$transaction([
+      this.prisma.todoItem.deleteMany({ where: { groupId } }),
+      this.prisma.todoList.deleteMany({ where: { groupId } }),
       this.prisma.shift.deleteMany({ where: { groupId } }),
       this.prisma.event.deleteMany({ where: { groupId } }),
       this.prisma.calendar.deleteMany({ where: { groupId } }),

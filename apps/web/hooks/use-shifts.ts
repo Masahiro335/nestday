@@ -22,8 +22,8 @@ export function useShiftPatterns() {
   return { patterns: data ?? [], isLoading, error };
 }
 
-export async function assignShifts(date: string, shiftPatternIds: string[]) {
-  await api.put(`/shifts/${date}`, { shiftPatternIds });
+export async function assignShifts(date: string, shiftPatternIds: string[], groupId?: string | null) {
+  await api.put(`/shifts/${date}`, { shiftPatternIds, ...(groupId && { groupId }) });
 }
 
 export async function removeShift(date: string) {

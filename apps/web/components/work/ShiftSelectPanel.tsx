@@ -9,6 +9,7 @@ interface ShiftSelectPanelProps {
   date: string | null;
   myShifts: Shift[];
   patterns: ShiftPattern[];
+  groupId?: string | null;
   onClose: () => void;
   onUpdated: () => void;
 }
@@ -24,6 +25,7 @@ export default function ShiftSelectPanel({
   date,
   myShifts,
   patterns,
+  groupId,
   onClose,
   onUpdated,
 }: ShiftSelectPanelProps) {
@@ -54,7 +56,7 @@ export default function ShiftSelectPanel({
     if (!date) return;
     setSaving(true);
     try {
-      await assignShifts(date, Array.from(selectedIds));
+      await assignShifts(date, Array.from(selectedIds), groupId);
       onUpdated();
       onClose();
     } finally {

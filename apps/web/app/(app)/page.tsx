@@ -11,7 +11,6 @@ import MonthSlider from '@/components/ui/MonthSlider';
 import { useEvents } from '@/hooks/use-events';
 import { useGroups, getStoredGroupId, setStoredGroupId } from '@/hooks/use-groups';
 import { createClient } from '@/lib/supabase';
-import api from '@/lib/api';
 
 interface ApiMember {
   id: string;
@@ -61,17 +60,15 @@ export default function PrivateCalendarPage() {
     }
   }, [groups]);
 
-  // 選択グループのメンバー一覧を取得
+  // 選択グループのメンバー一覧をmapに変換
   useEffect(() => {
-    if (!selectedGroupId) return;
-    api.get<{ members: ApiMember[] }>(`/groups/me`)
-      .then(({ data }) => {
-        const map: Record<string, string> = {};
-        data.members.forEach((m) => { map[m.id] = m.name ?? m.email.split('@')[0]; });
-        setMembersMap(map);
-      })
-      .catch(() => {});
-  }, [selectedGroupId]);
+    const selected = groups.find((g) => g.id === selectedGroupId);
+    const map: Record<string, string> = {};
+    (selected?.members ?? []).forEach((m: ApiMember) => {
+      map[m.id] = m.name ?? m.email.split('@')[0];
+    });
+    setMembersMap(map);
+  }, [selectedGroupId, groups]);
 
   function handleSelectGroup(groupId: string) {
     setSelectedGroupId(groupId);
