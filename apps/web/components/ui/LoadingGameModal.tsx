@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import DinoGame from './DinoGame';
 
 interface Props {
@@ -10,17 +10,20 @@ interface Props {
 export default function LoadingGameModal({ isVisible }: Props) {
   const [gameKey, setGameKey] = useState(0);
   const [bestScore, setBestScore] = useState(0);
+  const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (isVisible) {
-      setGameKey((k) => k + 1);
-    }
-  }, [isVisible]);
+    return () => {
+      if (restartTimerRef.current !== null) clearTimeout(restartTimerRef.current);
+    };
+  }, []);
 
   const handleGameOver = useCallback((score: number) => {
     setBestScore((prev) => Math.max(prev, score));
-    const t = setTimeout(() => setGameKey((k) => k + 1), 1500);
-    return () => clearTimeout(t);
+    restartTimerRef.current = setTimeout(() => {
+      restartTimerRef.current = null;
+      setGameKey((k) => k + 1);
+    }, 1500);
   }, []);
 
   if (!isVisible) return null;
