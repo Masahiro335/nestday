@@ -78,7 +78,7 @@ export default function LoadingGameModal({ isVisible }: Props) {
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
           <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>
-            スペースキー / タップ でジャンプ
+            タップ / スペースキー でジャンプ
           </p>
           {bestScore > 0 && (
             <p style={{ margin: 0, fontSize: '12px', color: '#666', fontWeight: 600 }}>
