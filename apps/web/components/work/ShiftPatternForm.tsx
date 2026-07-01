@@ -20,6 +20,9 @@ const SHIFT_COLORS = [
   '#ef4444', '#f97316', '#eab308', '#22c55e',
   '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899',
   '#6b7280', '#1a1a1a',
+  '#fca5a5', '#fdba74', '#fde68a', '#86efac',
+  '#99f6e4', '#93c5fd', '#c4b5fd', '#f9a8d4',
+  '#d1d5db', '#78716c',
 ] as const;
 
 interface ShiftPatternFormProps {
