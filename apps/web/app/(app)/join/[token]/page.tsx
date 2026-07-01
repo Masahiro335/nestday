@@ -33,7 +33,7 @@ export default function JoinPage() {
     setError(null);
     try {
       await api.post(`/groups/join/${token}`);
-      document.cookie = 'has_group=true; path=/';
+      document.cookie = 'has_group=true; path=/; max-age=2592000';
       router.push('/');
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
