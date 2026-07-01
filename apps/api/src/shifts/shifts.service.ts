@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AssignShiftDto } from './dto/assign-shift.dto';
@@ -30,6 +30,15 @@ export class ShiftsService {
       throw new NotFoundException('グループが見つかりません');
     }
     return membership.groupId;
+  }
+
+  private async resolveGroupId(userId: string, groupId?: string): Promise<string> {
+    if (!groupId) return this.getGroupId(userId);
+    const membership = await this.prisma.groupMember.findUnique({
+      where: { groupId_userId: { groupId, userId } },
+    });
+    if (!membership) throw new ForbiddenException('このグループのメンバーではありません');
+    return groupId;
   }
 
   private async getGroupIds(userId: string): Promise<string[]> {
@@ -66,7 +75,7 @@ export class ShiftsService {
   }
 
   async assign(date: string, dto: AssignShiftDto, currentUser: User) {
-    const groupId = await this.getGroupId(currentUser.id);
+    const groupId = await this.resolveGroupId(currentUser.id, dto.groupId);
     const parsedDate = new Date(date);
 
     // Remove patterns not in the new list

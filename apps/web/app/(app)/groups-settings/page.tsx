@@ -153,6 +153,7 @@ export default function SettingsPage() {
                 <li>グループ内の全カレンダー</li>
                 <li>グループ内の全イベント</li>
                 <li>グループ内の全シフト</li>
+                <li>グループ内の全TODOリスト・TODOアイテム</li>
               </ul>
               <p style={{ marginTop: 12, color: '#ef4444', fontWeight: 600 }}>
                 この操作は取り消せません。

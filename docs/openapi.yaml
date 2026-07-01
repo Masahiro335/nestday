@@ -1101,6 +1101,10 @@ paths:
                     type: string
                     format: uuid
                   description: 割り当てるシフトパターンIDの配列（空配列で全削除）
+                groupId:
+                  type: string
+                  format: uuid
+                  description: 対象グループID（省略時はユーザーの最初の所属グループ）
               required:
                 - shiftPatternIds
       responses:
