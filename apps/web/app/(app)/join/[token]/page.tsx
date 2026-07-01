@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import type { GroupPreview } from '@calendar-share/types';
+import type { GroupPreview } from '@nestday/types';
 
 export default function JoinPage() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function JoinPage() {
     setError(null);
     try {
       await api.post(`/groups/join/${token}`);
-      document.cookie = 'has_group=true; path=/';
+      document.cookie = 'has_group=true; path=/; max-age=2592000';
       router.push('/');
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;

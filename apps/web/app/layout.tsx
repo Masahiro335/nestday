@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
-  title: 'Calendar Share',
+  title: 'NestDay',
   description: 'グループ共有カレンダーアプリ',
 };
 

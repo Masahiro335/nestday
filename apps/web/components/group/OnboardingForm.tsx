@@ -1,15 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import InviteLinkCard from '@/components/group/InviteLinkCard';
-import type { Group } from '@calendar-share/types';
+import type { Group } from '@nestday/types';
+
+const HAS_GROUP_COOKIE = 'has_group=true; path=/; max-age=2592000';
 
 export default function OnboardingForm() {
+  const router = useRouter();
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [group, setGroup] = useState<Group | null>(null);
+  useEffect(() => {
+    api.get('/groups/me').then(() => {
+      document.cookie = HAS_GROUP_COOKIE;
+      router.replace('/');
+    }).catch(() => {});
+  }, [router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -18,7 +28,7 @@ export default function OnboardingForm() {
 
     try {
       const { data } = await api.post<Group>('/groups', { name });
-      document.cookie = 'has_group=true; path=/';
+      document.cookie = HAS_GROUP_COOKIE;
       setGroup(data);
     } catch {
       setError('グループの作成に失敗しました。もう一度お試しください');

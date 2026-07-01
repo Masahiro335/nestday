@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { EVENT_COLORS } from '@calendar-share/types';
+import { EVENT_COLORS } from '@nestday/types';
 import api from '@/lib/api';
 
 interface ColorLabel {

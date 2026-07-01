@@ -1,5 +1,5 @@
 {
-  "name": "@calendar-share/api",
+  "name": "@nestday/api",
   "version": "0.1.0",
   "private": true,
   "description": "NestJS backend for calendar sharing app",

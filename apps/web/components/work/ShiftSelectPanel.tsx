@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Shift, ShiftPattern } from '@calendar-share/types';
+import type { Shift, ShiftPattern } from '@nestday/types';
 import { assignShifts, removeShift } from '@/hooks/use-shifts';
 
 interface ShiftSelectPanelProps {

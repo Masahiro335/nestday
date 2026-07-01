@@ -120,7 +120,7 @@ type EventColor = '#FF6B6B' | '#4ECDC4' | '#45B7D1';
 フロントエンド・バックエンド共通の型は `packages/types` から import する（同等の型を各パッケージで再定義しない）。
 
 ```typescript
-import type { Event, CreateEventRequest } from '@calendar-share/types';
+import type { Event, CreateEventRequest } from '@nestday/types';
 ```
 
 ---

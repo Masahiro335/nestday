@@ -30,7 +30,7 @@ export default function GroupNewPage() {
     setLoading(true);
     try {
       const { data } = await api.post<ApiGroup>('/groups', { name: name.trim() });
-      document.cookie = 'has_group=true; path=/';
+      document.cookie = 'has_group=true; path=/; max-age=2592000';
       setCreated(data);
     } catch {
       setError('グループの作成に失敗しました。もう一度お試しください');
