@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
@@ -13,10 +14,12 @@ import { ShiftsModule } from './shifts/shifts.module';
 import { UsersModule } from './users/users.module';
 import { TodoListsModule } from './todo-lists/todo-lists.module';
 import { TodoItemsModule } from './todo-items/todo-items.module';
+import { KeepAliveModule } from './keep-alive/keep-alive.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     PrismaModule,
     SupabaseModule,
     AuthModule,
@@ -28,6 +31,7 @@ import { TodoItemsModule } from './todo-items/todo-items.module';
     UsersModule,
     TodoListsModule,
     TodoItemsModule,
+    KeepAliveModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
