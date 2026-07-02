@@ -14,12 +14,16 @@ export default function LoadingGameModal({ isVisible }: Props) {
 
   useEffect(() => {
     return () => {
-      if (restartTimerRef.current !== null) clearTimeout(restartTimerRef.current);
+      if (restartTimerRef.current !== null) {
+        clearTimeout(restartTimerRef.current);
+        restartTimerRef.current = null;
+      }
     };
-  }, []);
+  }, [isVisible]);
 
   const handleGameOver = useCallback((score: number) => {
     setBestScore((prev) => Math.max(prev, score));
+    if (restartTimerRef.current !== null) clearTimeout(restartTimerRef.current);
     restartTimerRef.current = setTimeout(() => {
       restartTimerRef.current = null;
       setGameKey((k) => k + 1);
