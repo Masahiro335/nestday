@@ -20,16 +20,12 @@ export class EventsService {
     return memberships.map((m) => m.groupId);
   }
 
-  /** グループ所属チェックのみ（グループ内外は問わない） */
-  private async requireGroupMembership(userId: string): Promise<void> {
-    const count = await this.prisma.groupMember.count({ where: { userId } });
-    if (count === 0) throw new NotFoundException('グループが見つかりません');
-  }
-
   async findOne(id: string, currentUser: User) {
-    await this.requireGroupMembership(currentUser.id);
+    const groupIds = await this.getGroupIds(currentUser.id);
     const event = await this.prisma.event.findUnique({ where: { id } });
-    if (!event) throw new NotFoundException('イベントが見つかりません');
+    if (!event || !groupIds.includes(event.groupId)) {
+      throw new NotFoundException('イベントが見つかりません');
+    }
     if (event.isSecret && event.createdBy !== currentUser.id) {
       throw new NotFoundException('イベントが見つかりません');
     }
@@ -38,6 +34,9 @@ export class EventsService {
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupIds = await this.getGroupIds(currentUser.id);
+    if (query.groupId && !groupIds.includes(query.groupId)) {
+      throw new ForbiddenException('このグループのメンバーではありません');
+    }
     const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
 
     const [year, month] = query.month.split('-').map(Number);

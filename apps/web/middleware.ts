@@ -2,7 +2,11 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_ROUTES = ['/login', '/register', '/game-preview'];
+// 未認証でもアクセス可能で、かつ認証済みでも / にリダイレクトしないルート
+const ALWAYS_PUBLIC_ROUTES = ['/game-preview'];
+// 未認証でもアクセス可能で、認証済みなら / にリダイレクトするルート
+const AUTH_ONLY_ROUTES = ['/login', '/register'];
+const PUBLIC_ROUTES = [...ALWAYS_PUBLIC_ROUTES, ...AUTH_ONLY_ROUTES];
 const GROUP_OPTIONAL_ROUTES = ['/onboarding', '/join'];
 
 export async function middleware(request: NextRequest) {
@@ -57,8 +61,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // 認証済み + /login, /register → /
-  if (isAuthenticated && isPublicRoute) {
+  // 認証済み + /login, /register → /（/game-preview は認証済みでもアクセス可能）
+  if (isAuthenticated && AUTH_ONLY_ROUTES.includes(pathname)) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);

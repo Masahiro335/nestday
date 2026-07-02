@@ -4,22 +4,17 @@ import { loadingGameStore } from '@/lib/loading-game-store';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
+  timeout: 30000,
 });
 
-api.interceptors.request.use(
-  async (config) => {
-    loadingGameStore.requestStarted();
-    const token = await getAccessToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    loadingGameStore.requestEnded();
-    return Promise.reject(error);
-  },
-);
+api.interceptors.request.use(async (config) => {
+  loadingGameStore.requestStarted();
+  const token = await getAccessToken();
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
 
 api.interceptors.response.use(
   (response) => {

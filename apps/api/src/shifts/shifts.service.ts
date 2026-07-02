@@ -57,11 +57,14 @@ export class ShiftsService {
 
   async findAll(query: GetEventsQueryDto, currentUser: User) {
     const groupIds = await this.getGroupIds(currentUser.id);
+    if (query.groupId && !groupIds.includes(query.groupId)) {
+      throw new ForbiddenException('このグループのメンバーではありません');
+    }
     const targetGroupIds = query.groupId ? [query.groupId] : groupIds;
 
     const [year, month] = query.month.split('-').map(Number);
-    const monthStart = new Date(year, month - 1, 1);
-    const monthEnd = new Date(year, month, 0);
+    const monthStart = new Date(Date.UTC(year, month - 1, 1));
+    const monthEnd = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
     const shifts = await this.prisma.shift.findMany({
       where: {
@@ -78,34 +81,36 @@ export class ShiftsService {
     const groupId = await this.resolveGroupId(currentUser.id, dto.groupId);
     const parsedDate = new Date(date);
 
-    // Remove patterns not in the new list
-    await this.prisma.shift.deleteMany({
-      where: {
-        userId: currentUser.id,
-        date: parsedDate,
-        shiftPatternId: { notIn: dto.shiftPatternIds },
-      },
-    });
-
-    // Upsert each selected pattern
-    for (const shiftPatternId of dto.shiftPatternIds) {
-      await this.prisma.shift.upsert({
+    await this.prisma.$transaction(async (tx) => {
+      // Remove patterns not in the new list
+      await tx.shift.deleteMany({
         where: {
-          userId_date_shiftPatternId: {
-            userId: currentUser.id,
-            date: parsedDate,
-            shiftPatternId,
-          },
-        },
-        create: {
           userId: currentUser.id,
-          groupId,
-          shiftPatternId,
           date: parsedDate,
+          shiftPatternId: { notIn: dto.shiftPatternIds },
         },
-        update: {},
       });
-    }
+
+      // Upsert each selected pattern
+      for (const shiftPatternId of dto.shiftPatternIds) {
+        await tx.shift.upsert({
+          where: {
+            userId_date_shiftPatternId: {
+              userId: currentUser.id,
+              date: parsedDate,
+              shiftPatternId,
+            },
+          },
+          create: {
+            userId: currentUser.id,
+            groupId,
+            shiftPatternId,
+            date: parsedDate,
+          },
+          update: {},
+        });
+      }
+    });
 
     const shifts = await this.prisma.shift.findMany({
       where: { userId: currentUser.id, date: parsedDate },

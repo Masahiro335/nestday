@@ -40,6 +40,12 @@ interface EventFormProps {
 
 const DEFAULT_COLOR = '#3b82f6';
 
+/** Date を datetime-local 入力用のローカル時刻文字列 "YYYY-MM-DDTHH:mm" に変換 */
+function toLocalISOString(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 export default function EventForm({ eventId, groupId }: EventFormProps) {
   const router = useRouter();
   const isEdit = !!eventId;
@@ -49,12 +55,12 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
   const [startAt, setStartAt] = useState(() => {
     const now = new Date();
     now.setMinutes(0, 0, 0);
-    return now.toISOString().slice(0, 16);
+    return toLocalISOString(now);
   });
   const [endAt, setEndAt] = useState(() => {
     const now = new Date();
     now.setHours(now.getHours() + 1, 0, 0, 0);
-    return now.toISOString().slice(0, 16);
+    return toLocalISOString(now);
   });
   const [isAllDay, setIsAllDay] = useState(false);
   const [isSecret, setIsSecret] = useState(false);
@@ -95,8 +101,8 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
             createClient().auth.getSession(),
           ]);
           setTitle(data.title);
-          setStartAt(data.startAt.slice(0, 16));
-          setEndAt(data.endAt.slice(0, 16));
+          setStartAt(toLocalISOString(new Date(data.startAt)));
+          setEndAt(toLocalISOString(new Date(data.endAt)));
           setIsAllDay(data.isAllDay);
           setIsSecret(data.isSecret);
           setColor(data.color ?? DEFAULT_COLOR);
@@ -220,22 +226,27 @@ export default function EventForm({ eventId, groupId }: EventFormProps) {
 
         {/* 日時 */}
         <div style={{ padding: '16px 0', borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-            <input
-              type={isAllDay ? 'date' : 'datetime-local'}
-              value={isAllDay ? startAt.slice(0, 10) : startAt}
-              onChange={(e) => !readOnly && setStartAt(e.target.value)}
-              readOnly={readOnly}
-              style={inputStyle}
-            />
-            <span style={{ color: '#6b7280' }}>→</span>
-            <input
-              type={isAllDay ? 'date' : 'datetime-local'}
-              value={isAllDay ? endAt.slice(0, 10) : endAt}
-              onChange={(e) => !readOnly && setEndAt(e.target.value)}
-              readOnly={readOnly}
-              style={inputStyle}
-            />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#6b7280', minWidth: 24 }}>開始</span>
+              <input
+                type={isAllDay ? 'date' : 'datetime-local'}
+                value={isAllDay ? startAt.slice(0, 10) : startAt}
+                onChange={(e) => !readOnly && setStartAt(e.target.value)}
+                readOnly={readOnly}
+                style={inputStyle}
+              />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#6b7280', minWidth: 24 }}>終了</span>
+              <input
+                type={isAllDay ? 'date' : 'datetime-local'}
+                value={isAllDay ? endAt.slice(0, 10) : endAt}
+                onChange={(e) => !readOnly && setEndAt(e.target.value)}
+                readOnly={readOnly}
+                style={inputStyle}
+              />
+            </div>
           </div>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: '#6b7280' }}>
             <input

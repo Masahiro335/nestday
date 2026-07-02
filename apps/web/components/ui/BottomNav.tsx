@@ -118,8 +118,7 @@ export default function BottomNav() {
               style={{
                 position: 'absolute',
                 bottom: 'calc(100% + 8px)',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                right: 0,
                 background: '#fff',
                 borderRadius: 12,
                 boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
