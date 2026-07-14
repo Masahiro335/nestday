@@ -34,7 +34,7 @@ export default function PrivateCalendarPage() {
   const [showGroupSheet, setShowGroupSheet] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState('');
 
-  const { groups } = useGroups();
+  const { groups, isValidating } = useGroups();
   const monthStr = toMonthStr(year, month);
   const { events } = useEvents(monthStr, selectedGroupId);
 
@@ -55,10 +55,12 @@ export default function PrivateCalendarPage() {
     const stored = getStoredGroupId();
     const valid = stored && groups.some((g) => g.id === stored);
     if (!valid) {
+      // stored ID があるが現在のデータに存在しない場合、再検証中なら待つ（新規グループ作成直後のキャッシュ不整合を防ぐ）
+      if (stored && isValidating) return;
       setSelectedGroupId(groups[0].id);
       setStoredGroupId(groups[0].id);
     }
-  }, [groups]);
+  }, [groups, isValidating]);
 
   // 選択グループのメンバー一覧をmapに変換
   useEffect(() => {

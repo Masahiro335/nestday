@@ -1,13 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { setStoredGroupId } from '@/hooks/use-groups';
 
 interface InviteLinkCardProps {
   inviteToken: string;
+  groupId?: string;
 }
 
-export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
+export default function InviteLinkCard({ inviteToken, groupId }: InviteLinkCardProps) {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/join/${inviteToken}`;
 
@@ -15,6 +18,11 @@ export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
     await navigator.clipboard.writeText(inviteUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function handleGoToCalendar() {
+    if (groupId) setStoredGroupId(groupId);
+    router.push('/');
   }
 
   return (
@@ -38,6 +46,7 @@ export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
           }}
         />
         <button
+          type="button"
           onClick={handleCopy}
           style={{
             padding: '10px 16px',
@@ -53,10 +62,12 @@ export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
         </button>
       </div>
 
-      <Link
-        href="/"
+      <button
+        type="button"
+        onClick={handleGoToCalendar}
         style={{
           display: 'block',
+          width: '100%',
           textAlign: 'center',
           padding: '12px',
           background: '#1a1a1a',
@@ -67,7 +78,7 @@ export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
         }}
       >
         カレンダーへ進む
-      </Link>
+      </button>
     </div>
   );
 }
