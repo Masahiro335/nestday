@@ -10,7 +10,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix('api/v1');
 
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGIN ?? 'http://localhost:3000',
+    origin: process.env.ALLOWED_ORIGIN || 'http://localhost:3000',
     credentials: true,
   });
 

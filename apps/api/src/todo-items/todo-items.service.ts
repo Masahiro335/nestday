@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTodoItemDto } from './dto/create-todo-item.dto';
@@ -38,6 +38,15 @@ export class TodoItemsService {
     const list = await this.prisma.todoList.findUnique({ where: { id: dto.listId } });
     if (!list) throw new NotFoundException('リストが見つかりません');
     await this.assertGroupMember(list.groupId, currentUser.id);
+
+    if (dto.assignedTo) {
+      const assigneeMembership = await this.prisma.groupMember.findUnique({
+        where: { groupId_userId: { groupId: list.groupId, userId: dto.assignedTo } },
+      });
+      if (!assigneeMembership) {
+        throw new BadRequestException('担当者はグループメンバーである必要があります');
+      }
+    }
 
     return this.prisma.todoItem.create({
       data: {

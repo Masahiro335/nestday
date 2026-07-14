@@ -113,6 +113,9 @@ export default function MemberDetailModal({
     setRemoveError('');
     try {
       await api.delete(`/groups/${groupId}/members/${member.id}`);
+      if (isMe) {
+        document.cookie = 'has_group=false; path=/';
+      }
       onMemberRemoved?.();
       handleClose();
     } catch {
