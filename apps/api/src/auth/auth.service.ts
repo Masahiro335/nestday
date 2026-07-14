@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
-import { createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
@@ -35,9 +35,9 @@ export class AuthService {
       throw new BadRequestException(error.message);
     }
 
-    // Store a hash locally to satisfy the NOT NULL constraint.
-    // Actual authentication is delegated to Supabase Auth.
-    const passwordHash = createHash('sha256').update(dto.password).digest('hex');
+    // Store a random placeholder to satisfy the NOT NULL constraint.
+    // Actual authentication is delegated to Supabase Auth — this value is never verified.
+    const passwordHash = randomBytes(32).toString('hex');
 
     const user = await this.prisma.user.create({
       data: {

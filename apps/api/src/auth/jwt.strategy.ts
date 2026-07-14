@@ -23,8 +23,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private readonly prisma: PrismaService,
   ) {
     const supabaseUrl = config.getOrThrow<string>('SUPABASE_URL');
-    // Cache PEM keys by kid to avoid fetching JWKS on every request
     const cachedKeys: Record<string, string> = {};
+    const cacheTimestamps: Record<string, number> = {};
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour — covers Supabase key rotation cycles
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -48,7 +49,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           }
 
           const kid = header.kid ?? '';
-          if (!cachedKeys[kid]) {
+          const now = Date.now();
+          const isStale = !cachedKeys[kid] || now - (cacheTimestamps[kid] ?? 0) > CACHE_TTL_MS;
+          if (isStale) {
             const res = await fetch(
               `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
             );
@@ -58,6 +61,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
               cachedKeys[jwk.kid] = cryptoKey
                 .export({ type: 'spki', format: 'pem' })
                 .toString();
+              cacheTimestamps[jwk.kid] = now;
             }
           }
 

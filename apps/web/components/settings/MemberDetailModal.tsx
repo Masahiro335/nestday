@@ -113,6 +113,18 @@ export default function MemberDetailModal({
     setRemoveError('');
     try {
       await api.delete(`/groups/${groupId}/members/${member.id}`);
+      if (isMe) {
+        // 残存グループがあれば has_group=true を維持し、なければ false にする
+        try {
+          const { data } = await api.get<{ id: string }[]>('/groups/me');
+          document.cookie =
+            data?.length > 0
+              ? 'has_group=true; path=/; max-age=2592000'
+              : 'has_group=false; path=/';
+        } catch {
+          document.cookie = 'has_group=false; path=/';
+        }
+      }
       onMemberRemoved?.();
       handleClose();
     } catch {

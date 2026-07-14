@@ -57,7 +57,7 @@ export default function SettingsPage() {
 
   const { groups, isLoading, mutate } = useGroups();
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
   useEffect(() => {
     createClient().auth.getSession().then(({ data: { session } }) => {

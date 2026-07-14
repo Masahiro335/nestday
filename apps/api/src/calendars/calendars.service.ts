@@ -61,10 +61,16 @@ export class CalendarsService {
   }
 
   async update(id: string, dto: UpdateCalendarDto, currentUser: User) {
-    await this.getGroupId(currentUser.id);
     const calendar = await this.prisma.calendar.findUnique({ where: { id } });
     if (!calendar) {
       throw new NotFoundException('カレンダーが見つかりません');
+    }
+    const groupIds = await this.getGroupIds(currentUser.id);
+    if (!groupIds.includes(calendar.groupId)) {
+      throw new ForbiddenException('このグループのメンバーではありません');
+    }
+    if (calendar.createdBy !== currentUser.id) {
+      throw new ForbiddenException('作成者のみ編集できます');
     }
     return this.prisma.calendar.update({
       where: { id },
@@ -76,10 +82,16 @@ export class CalendarsService {
   }
 
   async remove(id: string, currentUser: User) {
-    await this.getGroupId(currentUser.id);
     const calendar = await this.prisma.calendar.findUnique({ where: { id } });
     if (!calendar) {
       throw new NotFoundException('カレンダーが見つかりません');
+    }
+    const groupIds = await this.getGroupIds(currentUser.id);
+    if (!groupIds.includes(calendar.groupId)) {
+      throw new ForbiddenException('このグループのメンバーではありません');
+    }
+    if (calendar.createdBy !== currentUser.id) {
+      throw new ForbiddenException('作成者のみ削除できます');
     }
     await this.prisma.calendar.delete({ where: { id } });
   }

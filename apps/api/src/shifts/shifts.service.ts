@@ -81,6 +81,17 @@ export class ShiftsService {
     const groupId = await this.resolveGroupId(currentUser.id, dto.groupId);
     const parsedDate = new Date(date);
 
+    // Verify all specified shift patterns belong to the current user
+    const uniquePatternIds = [...new Set(dto.shiftPatternIds)];
+    if (uniquePatternIds.length > 0) {
+      const ownedCount = await this.prisma.shiftPattern.count({
+        where: { id: { in: uniquePatternIds }, userId: currentUser.id },
+      });
+      if (ownedCount !== uniquePatternIds.length) {
+        throw new ForbiddenException('指定されたシフトパターンは使用できません');
+      }
+    }
+
     await this.prisma.$transaction(async (tx) => {
       // Remove patterns not in the new list
       await tx.shift.deleteMany({

@@ -12,7 +12,7 @@ interface ApiGroup {
   inviteToken: string;
 }
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
 
 export default function GroupNewPage() {
   const router = useRouter();

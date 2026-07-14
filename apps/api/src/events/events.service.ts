@@ -58,6 +58,10 @@ export class EventsService {
   }
 
   async create(dto: CreateEventDto, currentUser: User) {
+    if (new Date(dto.endAt) < new Date(dto.startAt)) {
+      throw new BadRequestException('終了日時は開始日時以降に設定してください');
+    }
+
     const calendar = await this.prisma.calendar.findUnique({ where: { id: dto.calendarId } });
     if (!calendar) throw new BadRequestException('カレンダーが見つかりません');
 
@@ -91,6 +95,13 @@ export class EventsService {
     if (event.createdBy !== currentUser.id) {
       throw new ForbiddenException('自分が作成したイベントのみ編集できます');
     }
+
+    const effectiveStart = dto.startAt ? new Date(dto.startAt) : event.startAt;
+    const effectiveEnd = dto.endAt ? new Date(dto.endAt) : event.endAt;
+    if (effectiveEnd < effectiveStart) {
+      throw new BadRequestException('終了日時は開始日時以降に設定してください');
+    }
+
     return this.prisma.event.update({
       where: { id },
       data: {

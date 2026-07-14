@@ -18,6 +18,9 @@ export default function RegisterForm({ redirectTo }: RegisterFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // 外部URLへのオープンリダイレクトを防ぐため、'/' 始まりの相対パスのみ許可
+  const safeRedirect = redirectTo?.startsWith('/') ? redirectTo : undefined;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -54,12 +57,12 @@ export default function RegisterForm({ redirectTo }: RegisterFormProps) {
     document.cookie = 'has_group=false; path=/';
 
     // 招待リンク経由の場合はそこへ戻る、通常登録はオンボーディングへ
-    router.push(redirectTo ?? '/onboarding');
+    router.push(safeRedirect ?? '/onboarding');
   }
 
   // ログインリンクに redirect を引き継ぐ
-  const loginHref = redirectTo
-    ? `/login?redirect=${encodeURIComponent(redirectTo)}`
+  const loginHref = safeRedirect
+    ? `/login?redirect=${encodeURIComponent(safeRedirect)}`
     : '/login';
 
   return (
@@ -67,12 +70,12 @@ export default function RegisterForm({ redirectTo }: RegisterFormProps) {
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, textAlign: 'center' }}>
         NestDay
       </h1>
-      {redirectTo && (
+      {safeRedirect && (
         <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', marginBottom: 24 }}>
           アカウントを作成して招待を受け取ってください
         </p>
       )}
-      {!redirectTo && <div style={{ marginBottom: 32 }} />}
+      {!safeRedirect && <div style={{ marginBottom: 32 }} />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
         <input
