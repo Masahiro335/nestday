@@ -180,6 +180,16 @@ export default function GroupNewPage() {
         >
           {loading ? '作成中...' : '作成する'}
         </button>
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 12, fontSize: 16, fontWeight: 600,
+            background: '#f3f4f6', color: '#374151',
+          }}
+        >
+          キャンセル
+        </button>
       </form>
     </div>
   );
