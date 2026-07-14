@@ -102,7 +102,8 @@ export default function GroupNewPage() {
             type="button"
             onClick={() => {
               setStoredGroupId(created.id);
-              router.push('/');
+              // router.push はキャッシュされたリダイレクトを使う可能性があるため hard navigation
+              window.location.href = '/';
             }}
             style={{ width: '100%', padding: '14px', background: '#3b82f6', color: '#fff', borderRadius: 12, fontSize: 16, fontWeight: 700 }}
           >

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { setStoredGroupId } from '@/hooks/use-groups';
 
 interface InviteLinkCardProps {
@@ -10,7 +9,6 @@ interface InviteLinkCardProps {
 }
 
 export default function InviteLinkCard({ inviteToken, groupId }: InviteLinkCardProps) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/join/${inviteToken}`;
 
@@ -22,7 +20,9 @@ export default function InviteLinkCard({ inviteToken, groupId }: InviteLinkCardP
 
   function handleGoToCalendar() {
     if (groupId) setStoredGroupId(groupId);
-    router.push('/');
+    // router.push はオンボーディング時点の RSC プリフェッチキャッシュ
+    // (has_group=false → /onboarding リダイレクト) を使うため hard navigation で回避
+    window.location.href = '/';
   }
 
   return (
