@@ -197,9 +197,9 @@
 
 | ワークフロー | トリガー | 内容 |
 |------------|---------|------|
-| CI | PR → `develop` / `release` | lint・型チェック・ビルド |
+| CI | PR → `develop` / `main` | lint・型チェック・ビルド |
 | Deploy Development | push → `develop` | Vercel preview + Render dev デプロイ |
-| Deploy Production | push → `release` | Vercel production + Render production デプロイ |
+| Deploy Production | push → `main` | Vercel production + Render production デプロイ |
 
 ## 更新履歴
 
