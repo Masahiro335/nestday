@@ -32,3 +32,6 @@ lerna-debug.log*
 *.swp
 *.swo
 *~
+
+# Vercel
+.vercel
