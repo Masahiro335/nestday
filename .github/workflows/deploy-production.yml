@@ -3,7 +3,7 @@ name: Deploy Production
 on:
   push:
     branches:
-      - release
+      - main
 
 concurrency:
   group: deploy-production
@@ -99,6 +99,10 @@ jobs:
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Link root node_modules for Vercel deploy
+        if: steps.vercel-check.outputs.configured == 'true'
+        run: ln -sf "$(pwd)/node_modules" apps/web/node_modules
 
       - name: Deploy to Vercel (Production)
         if: steps.vercel-check.outputs.configured == 'true'

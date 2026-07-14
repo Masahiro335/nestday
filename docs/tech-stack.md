@@ -198,7 +198,7 @@ develop ブランチへのマージ
   → Vercel Preview デプロイ（Web）
   → Render dev デプロイ（API）
 
-release ブランチへのマージ
+main ブランチへのマージ
   → Vercel Production デプロイ（Web）
   → Render prod デプロイ（API）
 ```
