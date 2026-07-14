@@ -9,7 +9,7 @@ interface InviteLinkCardProps {
 
 export default function InviteLinkCard({ inviteToken }: InviteLinkCardProps) {
   const [copied, setCopied] = useState(false);
-  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/join/${inviteToken}`;
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '')}/join/${inviteToken}`;
 
   async function handleCopy() {
     await navigator.clipboard.writeText(inviteUrl);
