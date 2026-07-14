@@ -14,11 +14,11 @@ function fetcher(url: string) {
 }
 
 export function useGroups() {
-  const { data, error, isLoading, mutate } = useSWR<ApiGroupSummary[]>(
+  const { data, error, isLoading, isValidating, mutate } = useSWR<ApiGroupSummary[]>(
     '/groups',
     fetcher,
   );
-  return { groups: data ?? [], isLoading, error, mutate };
+  return { groups: data ?? [], isLoading, isValidating, error, mutate };
 }
 
 const STORAGE_KEY = 'nestday_selected_group_id';

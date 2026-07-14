@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import ColorPicker from '@/components/ui/ColorPicker';
+import { setStoredGroupId } from '@/hooks/use-groups';
 
 interface ApiGroup {
   id: string;
@@ -99,7 +100,11 @@ export default function GroupNewPage() {
           {/* アクション */}
           <button
             type="button"
-            onClick={() => router.push('/')}
+            onClick={() => {
+              setStoredGroupId(created.id);
+              // router.push はキャッシュされたリダイレクトを使う可能性があるため hard navigation
+              window.location.href = '/';
+            }}
             style={{ width: '100%', padding: '14px', background: '#3b82f6', color: '#fff', borderRadius: 12, fontSize: 16, fontWeight: 700 }}
           >
             カレンダーへ進む
@@ -175,6 +180,16 @@ export default function GroupNewPage() {
           }}
         >
           {loading ? '作成中...' : '作成する'}
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          style={{
+            width: '100%', padding: '16px', borderRadius: 12, fontSize: 16, fontWeight: 600,
+            background: '#f3f4f6', color: '#374151',
+          }}
+        >
+          キャンセル
         </button>
       </form>
     </div>
