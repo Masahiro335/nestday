@@ -82,11 +82,12 @@ export class ShiftsService {
     const parsedDate = new Date(date);
 
     // Verify all specified shift patterns belong to the current user
-    if (dto.shiftPatternIds.length > 0) {
+    const uniquePatternIds = [...new Set(dto.shiftPatternIds)];
+    if (uniquePatternIds.length > 0) {
       const ownedCount = await this.prisma.shiftPattern.count({
-        where: { id: { in: dto.shiftPatternIds }, userId: currentUser.id },
+        where: { id: { in: uniquePatternIds }, userId: currentUser.id },
       });
-      if (ownedCount !== dto.shiftPatternIds.length) {
+      if (ownedCount !== uniquePatternIds.length) {
         throw new ForbiddenException('指定されたシフトパターンは使用できません');
       }
     }
