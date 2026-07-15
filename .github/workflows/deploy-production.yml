@@ -114,20 +114,20 @@ jobs:
           # causing refs to resolve as join(apps/web, "apps/web/...") = double-nested paths.
           # Fix: strip the "apps/web/" prefix from filePathMap values so deploy resolves
           # them correctly as join(apps/web, ".next/...") = apps/web/.next/... (correct).
-          find .vercel/output -name ".vc-config.json" 2>/dev/null | while read f; do
-            node -e "
+          find .vercel/output -name ".vc-config.json" 2>/dev/null | while IFS= read -r f; do
+            VC_CONFIG_PATH="$f" node -e "
               const fs = require('fs');
-              const path = process.argv[1];
-              const c = JSON.parse(fs.readFileSync(path, 'utf8'));
+              const p = process.env.VC_CONFIG_PATH;
+              const c = JSON.parse(fs.readFileSync(p, 'utf8'));
               if (c.filePathMap) {
                 for (const k in c.filePathMap) {
                   if (c.filePathMap[k].startsWith('apps/web/')) {
-                    c.filePathMap[k] = c.filePathMap[k].slice('apps/web/'.length);
+                    c.filePathMap[k] = c.filePathMap[k].slice(9);
                   }
                 }
-                fs.writeFileSync(path, JSON.stringify(c));
+                fs.writeFileSync(p, JSON.stringify(c));
               }
-            " "\$f"
+            "
           done
           # Restore 404.html deleted by vercel build post-processing
           mkdir -p .next/server/pages
