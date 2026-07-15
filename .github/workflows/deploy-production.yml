@@ -104,10 +104,32 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Restore 404.html removed by vercel build post-processing
+      - name: Fix vercel build monorepo path mismatch in .vc-config.json
         if: steps.vercel-check.outputs.configured == 'true'
         working-directory: apps/web
         run: |
+          # vercel build detects npm workspace root (repo root) and stores filePathMap values
+          # as "apps/web/..." (relative to repo root). But vercel deploy with VERCEL_ORG_ID/
+          # VERCEL_PROJECT_ID env vars skips workspace detection and uses cwd=apps/web,
+          # causing refs to resolve as join(apps/web, "apps/web/...") = double-nested paths.
+          # Fix: strip the "apps/web/" prefix from filePathMap values so deploy resolves
+          # them correctly as join(apps/web, ".next/...") = apps/web/.next/... (correct).
+          find .vercel/output -name ".vc-config.json" 2>/dev/null | while read f; do
+            node -e "
+              const fs = require('fs');
+              const path = process.argv[1];
+              const c = JSON.parse(fs.readFileSync(path, 'utf8'));
+              if (c.filePathMap) {
+                for (const k in c.filePathMap) {
+                  if (c.filePathMap[k].startsWith('apps/web/')) {
+                    c.filePathMap[k] = c.filePathMap[k].slice('apps/web/'.length);
+                  }
+                }
+                fs.writeFileSync(path, JSON.stringify(c));
+              }
+            " "\$f"
+          done
+          # Restore 404.html deleted by vercel build post-processing
           mkdir -p .next/server/pages
           if [ ! -f .next/server/pages/404.html ]; then
             src=$(find .vercel/output -name "404.html" -not -path "*/functions/*" 2>/dev/null | head -1)
