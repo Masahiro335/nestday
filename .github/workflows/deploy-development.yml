@@ -104,46 +104,32 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Fix vercel build monorepo path mismatch in .vc-config.json
+      - name: Prepare Vercel deployment
         if: steps.vercel-check.outputs.configured == 'true'
-        working-directory: apps/web
         run: |
-          # vercel build detects npm workspace root (repo root) and stores filePathMap values
-          # as "apps/web/..." (relative to repo root). But vercel deploy with VERCEL_ORG_ID/
-          # VERCEL_PROJECT_ID env vars skips workspace detection and uses cwd=apps/web,
-          # causing refs to resolve as join(apps/web, "apps/web/...") = double-nested paths.
-          # Fix: strip the "apps/web/" prefix from filePathMap values so deploy resolves
-          # them correctly as join(apps/web, ".next/...") = apps/web/.next/... (correct).
-          find .vercel/output -name ".vc-config.json" 2>/dev/null | while IFS= read -r f; do
-            VC_CONFIG_PATH="$f" node -e "
-              const fs = require('fs');
-              const p = process.env.VC_CONFIG_PATH;
-              const c = JSON.parse(fs.readFileSync(p, 'utf8'));
-              if (c.filePathMap) {
-                for (const k in c.filePathMap) {
-                  if (c.filePathMap[k].startsWith('apps/web/')) {
-                    c.filePathMap[k] = c.filePathMap[k].slice(9);
-                  }
-                }
-                fs.writeFileSync(p, JSON.stringify(c));
-              }
-            "
-          done
           # Restore 404.html deleted by vercel build post-processing
-          mkdir -p .next/server/pages
-          if [ ! -f .next/server/pages/404.html ]; then
-            src=$(find .vercel/output -name "404.html" -not -path "*/functions/*" 2>/dev/null | head -1)
+          # (filePathMap references apps/web/.next/server/pages/404.html)
+          mkdir -p apps/web/.next/server/pages
+          if [ ! -f apps/web/.next/server/pages/404.html ]; then
+            src=$(find apps/web/.vercel/output -name "404.html" -not -path "*/functions/*" 2>/dev/null | head -1)
             if [ -n "$src" ]; then
-              cp "$src" .next/server/pages/404.html
+              cp "$src" apps/web/.next/server/pages/404.html
             else
-              echo '<!DOCTYPE html><html><head><title>404</title></head><body>404 Not Found</body></html>' > .next/server/pages/404.html
+              echo '<!DOCTYPE html><html><head><title>404</title></head><body>404 Not Found</body></html>' > apps/web/.next/server/pages/404.html
             fi
           fi
+          # Move .vercel/output to repo root so vercel deploy (run from repo root) resolves
+          # filePathMap refs (apps/web/.next/... and node_modules/...) directly from repo root
+          # without going through the absolute node_modules symlink (causes EEXIST on Vercel server)
+          rm -rf .vercel/output
+          mkdir -p .vercel
+          mv apps/web/.vercel/output .vercel/output
+          # Remove the absolute node_modules symlink to prevent it from being bundled
+          rm -f apps/web/node_modules
 
       - name: Deploy to Vercel (Preview)
         if: steps.vercel-check.outputs.configured == 'true'
         id: deploy
-        working-directory: apps/web
         run: |
           url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> $GITHUB_OUTPUT
