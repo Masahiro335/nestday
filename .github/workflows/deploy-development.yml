@@ -121,8 +121,9 @@ jobs:
       - name: Deploy to Vercel (Preview)
         if: steps.vercel-check.outputs.configured == 'true'
         id: deploy
+        working-directory: apps/web
         run: |
-          url=$(vercel deploy --prebuilt apps/web --token=${{ secrets.VERCEL_TOKEN }})
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           echo "url=$url" >> $GITHUB_OUTPUT
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
