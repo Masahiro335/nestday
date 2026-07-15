@@ -124,8 +124,11 @@ jobs:
           rm -rf .vercel/output
           mkdir -p .vercel
           mv apps/web/.vercel/output .vercel/output
-          # Remove the absolute node_modules symlink to prevent it from being bundled
+          # Replace the absolute node_modules symlink with an empty directory.
+          # The symlink caused EEXIST on Vercel's server; the empty dir satisfies
+          # the Vercel CLI pre-flight check (rootDirectory: apps/web).
           rm -f apps/web/node_modules
+          mkdir apps/web/node_modules
 
       - name: Deploy to Vercel (Preview)
         if: steps.vercel-check.outputs.configured == 'true'
