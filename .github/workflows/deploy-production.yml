@@ -94,7 +94,7 @@ jobs:
 
       - name: Link root node_modules for build and deploy
         if: steps.vercel-check.outputs.configured == 'true'
-        run: ln -sf "$(pwd)/node_modules" apps/web/node_modules
+        run: rm -rf apps/web/node_modules && ln -sf "$(pwd)/node_modules" apps/web/node_modules
 
       - name: Build project artifacts
         if: steps.vercel-check.outputs.configured == 'true'

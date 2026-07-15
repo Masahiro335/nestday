@@ -16,6 +16,7 @@ export default function JoinPage() {
   const [joining, setJoining] = useState(false);
 
   useEffect(() => {
+    if (!token) return;
     api
       .get<GroupPreview>(`/groups/join/${token}`)
       .then(({ data }) => setPreview(data))
