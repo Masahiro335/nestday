@@ -17,7 +17,7 @@ const tabs = [
 ];
 
 export default function BottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
   const [settingsOpen, setSettingsOpen] = useState(false);
   const settingsRef = useRef<HTMLDivElement>(null);
 

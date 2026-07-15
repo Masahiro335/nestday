@@ -9,13 +9,14 @@ import type { GroupPreview } from '@nestday/types';
 export default function JoinPage() {
   const router = useRouter();
   const params = useParams<{ token: string }>();
-  const token = params.token;
+  const token = params?.token ?? '';
 
   const [preview, setPreview] = useState<GroupPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
 
   useEffect(() => {
+    if (!token) return;
     api
       .get<GroupPreview>(`/groups/join/${token}`)
       .then(({ data }) => setPreview(data))
