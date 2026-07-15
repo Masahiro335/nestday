@@ -104,6 +104,20 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+      - name: Restore 404.html removed by vercel build post-processing
+        if: steps.vercel-check.outputs.configured == 'true'
+        working-directory: apps/web
+        run: |
+          mkdir -p .next/server/pages
+          if [ ! -f .next/server/pages/404.html ]; then
+            src=$(find .vercel/output -name "404.html" -not -path "*/functions/*" 2>/dev/null | head -1)
+            if [ -n "$src" ]; then
+              cp "$src" .next/server/pages/404.html
+            else
+              echo '<!DOCTYPE html><html><head><title>404</title></head><body>404 Not Found</body></html>' > .next/server/pages/404.html
+            fi
+          fi
+
       - name: Deploy to Vercel (Production)
         if: steps.vercel-check.outputs.configured == 'true'
         id: deploy
