@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import type { GroupPreview } from '@nestday/types';
 
 export default function JoinPage() {
-  const router = useRouter();
   const params = useParams<{ token: string }>();
   const token = params?.token ?? '';
 
@@ -35,7 +34,8 @@ export default function JoinPage() {
     try {
       await api.post(`/groups/join/${token}`);
       document.cookie = 'has_group=true; path=/; max-age=2592000';
-      router.push('/');
+      // router.push はミドルウェアのキャッシュで /onboarding にリダイレクトされる場合があるため hard navigation
+      window.location.href = '/';
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 409) {

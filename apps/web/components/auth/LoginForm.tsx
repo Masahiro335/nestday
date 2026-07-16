@@ -43,10 +43,10 @@ export default function LoginForm({ redirectTo }: LoginFormProps) {
     try {
       await api.get('/groups/me');
       document.cookie = 'has_group=true; path=/; max-age=2592000';
-      router.push('/');
+      window.location.href = '/';
     } catch {
       document.cookie = 'has_group=false; path=/';
-      router.push('/onboarding');
+      window.location.href = '/onboarding';
     }
   }
 
