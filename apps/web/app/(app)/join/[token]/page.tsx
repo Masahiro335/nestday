@@ -13,6 +13,7 @@ export default function JoinPage() {
   const [preview, setPreview] = useState<GroupPreview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -27,6 +28,17 @@ export default function JoinPage() {
         }
       });
   }, [token]);
+
+  async function handleCancel() {
+    setCancelling(true);
+    try {
+      await api.get('/groups/me');
+      document.cookie = 'has_group=true; path=/; max-age=2592000';
+    } catch {
+      document.cookie = 'has_group=false; path=/';
+    }
+    window.location.href = '/';
+  }
 
   async function handleJoin() {
     setJoining(true);
@@ -99,9 +111,13 @@ export default function JoinPage() {
           {joining ? '参加中...' : '参加する'}
         </button>
 
-        <Link href="/onboarding" style={{ ...linkStyle, color: '#6b7280', background: '#f3f4f6' }}>
-          キャンセル
-        </Link>
+        <button
+          onClick={handleCancel}
+          disabled={cancelling || joining}
+          style={{ ...linkStyle, color: '#6b7280', background: '#f3f4f6', width: '100%', cursor: 'pointer' }}
+        >
+          {cancelling ? '...' : 'キャンセル'}
+        </button>
       </div>
     </main>
   );
