@@ -8,6 +8,7 @@ const settingsMenu = [
   { href: '/groups-settings', label: 'グループ', icon: '👥' },
   { href: '/groups-settings/profile', label: 'プロフィール', icon: '👤' },
   { href: '/groups-settings/account', label: 'アカウント', icon: '🔐' },
+  { href: '/manual', label: '操作マニュアル', icon: '📖' },
 ];
 
 const tabs = [
