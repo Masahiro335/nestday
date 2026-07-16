@@ -19,7 +19,8 @@
       ]
     },
     "allowJs": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "strictNullChecks": true
   },
   "include": [
     "**/*.ts",
