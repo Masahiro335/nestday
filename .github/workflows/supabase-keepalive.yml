@@ -36,6 +36,7 @@ jobs:
               --max-time 30 \
               -o /tmp/ping_body.json \
               -w "%{http_code}" \
+              -H "apikey: $SUPABASE_ANON_KEY" \
               "$REST_URL") || curl_exit=$?
             echo "$curl_exit:$status"
           }
