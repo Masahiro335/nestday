@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_REF: dohrlaixbrabnirvrremz
+  PROJECT_REF: dohrlaixbrabnirvremz
 
 jobs:
   # ────────────────────────────────────────────
