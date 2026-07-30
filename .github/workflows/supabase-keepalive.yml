@@ -24,7 +24,7 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          REST_URL="https://${PROJECT_REF}.supabase.co/rest/v1/"
+          REST_URL="https://${PROJECT_REF}.supabase.co/auth/v1/health"
           MGMT_URL="https://api.supabase.com/v1/projects/${PROJECT_REF}"
 
           # ── ヘルパー: REST ping を実行して HTTP ステータスを返す ──
@@ -36,8 +36,6 @@ jobs:
               --max-time 30 \
               -o /tmp/ping_body.json \
               -w "%{http_code}" \
-              -H "apikey: $SUPABASE_ANON_KEY" \
-              -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
               "$REST_URL") || curl_exit=$?
             echo "$curl_exit:$status"
           }
@@ -58,7 +56,7 @@ jobs:
           # 原因: シークレット未設定・テーブル名変更・Supabase 側エラーなど設定ミスの可能性が高い
           if [ "$curl_exit" -eq 0 ]; then
             echo "::error::REST API returned HTTP $http_status (curl succeeded). Project is reachable but responded unexpectedly."
-            echo "Check SUPABASE_ANON_KEY secret."
+            echo "Check that the Supabase project is reachable."
             cat /tmp/ping_body.json
             exit 1
           fi
